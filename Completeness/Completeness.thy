@@ -8,6 +8,8 @@ theory Completeness
   imports Completeness_Verifier
 begin
 
+section \<open>Completeness Entry Point\<close>
+
 text \<open>
   Public entry point for the honest-completeness development.  The imported
   theories reduce the probabilistic verifier failure event to deterministic

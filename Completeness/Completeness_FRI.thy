@@ -8,6 +8,8 @@ theory Completeness_FRI
   imports Completeness_Query
 begin
 
+section \<open>Honest FRI Checks\<close>
+
 text \<open>Honest FRI decommitment, fold, degree-halving, and final-value facts.\<close>
 
 context verification

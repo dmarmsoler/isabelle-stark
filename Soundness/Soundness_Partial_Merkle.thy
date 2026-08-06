@@ -9,7 +9,7 @@ theory Soundness_Partial_Merkle
     Staged_Security_Experiment
 begin
 
-section \<open>Partial Merkle Openings\<close>
+section \<open>Partial Merkle Openings and Algebraic Reductions\<close>
 
 text \<open>
   This theory records the authenticated openings that the verifier actually

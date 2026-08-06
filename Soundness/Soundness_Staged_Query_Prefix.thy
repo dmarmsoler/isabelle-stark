@@ -8,6 +8,8 @@ theory Soundness_Staged_Query_Prefix
   imports Soundness_Reductions Staged_Security_Experiment
 begin
 
+section \<open>Query and Partial-Opening Reductions\<close>
+
 text \<open>Staged query-prefix replay and prefix receive decomposition lemmas.\<close>
 
 context soundness

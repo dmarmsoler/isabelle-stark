@@ -34,15 +34,12 @@
 %\renewcommand{\isastyle}{\isastyleminor}
 
 % The theory sources use Isabelle section commands locally.  In this document
-% we group theories by session first, so theory-level sections are rendered one
-% level below the manual session sections.  Some internal soundness theories
-% start with subsection markup; mapping section and subsection to the same
-% LaTeX level avoids chapter-zero / section-zero numbering in the table of
-% contents.
+% we group theories by session first, so theory-level headings are rendered one
+% level below the manual session sections.
 \renewcommand{\isamarkupchapter}[1]{\section{#1}}
 \renewcommand{\isamarkupsection}[1]{\subsection{#1}}
-\renewcommand{\isamarkupsubsection}[1]{\subsection{#1}}
-\renewcommand{\isamarkupsubsubsection}[1]{\subsubsection{#1}}
+\renewcommand{\isamarkupsubsection}[1]{\subsubsection{#1}}
+\renewcommand{\isamarkupsubsubsection}[1]{\paragraph{#1}}
 
 
 \begin{document}

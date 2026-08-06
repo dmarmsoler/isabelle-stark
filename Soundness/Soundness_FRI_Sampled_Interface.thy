@@ -9,6 +9,8 @@ theory Soundness_FRI_Sampled_Interface
     Soundness_FRI_Derived_Active_Reductions
 begin
 
+section \<open>Concrete FRI Query Bounds and Public Endpoint\<close>
+
 text \<open>
   Sampled-query FRI interface.
 

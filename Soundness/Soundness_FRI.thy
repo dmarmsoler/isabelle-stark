@@ -9,6 +9,8 @@ theory Soundness_FRI
     Soundness_Bad_Events
 begin
 
+section \<open>FRI Interfaces\<close>
+
 context soundness
 begin
 

@@ -8,6 +8,8 @@ theory Soundness_Core_Base
   imports Stark_Core.Stark
 begin
 
+section \<open>Core Soundness Infrastructure\<close>
+
 text \<open>
   Core definitions and deterministic relations used by the STARK soundness
   development. Later layers separate Merkle binding, verifier execution, bad

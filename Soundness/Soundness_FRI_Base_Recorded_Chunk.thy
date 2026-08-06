@@ -8,6 +8,8 @@ theory Soundness_FRI_Base_Recorded_Chunk
   imports Soundness_FRI_Layer_Merkle
 begin
 
+section \<open>FRI Replay and Active Bounds\<close>
+
 text \<open>
   Base-layer recorded chunk replay.  This is the small case needed for the
   existing first-layer composition residual: the head chunk read by

@@ -8,6 +8,8 @@ theory Completeness_Core
   imports Stark_Core.Stark
 begin
 
+section \<open>Core Completeness Infrastructure\<close>
+
 text \<open>Core verification locale, honest-trace predicates, and WP/no-failure infrastructure.\<close>
 
 locale verification =

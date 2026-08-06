@@ -8,6 +8,8 @@ theory Completeness_Algebra
   imports Completeness_Core
 begin
 
+section \<open>Algebraic Completeness Facts\<close>
+
 text \<open>Deterministic polynomial and degree facts used by honest completeness.\<close>
 
 context verification

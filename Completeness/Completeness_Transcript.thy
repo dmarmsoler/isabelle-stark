@@ -8,6 +8,8 @@ theory Completeness_Transcript
   imports Completeness_Algebra
 begin
 
+section \<open>Honest Transcript and Hash Replay\<close>
+
 text \<open>Transcript-extension and hash-extension lemmas for honest prover execution.\<close>
 
 context verification

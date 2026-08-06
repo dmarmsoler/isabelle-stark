@@ -10,6 +10,8 @@ theory Soundness_Staged_Relevant_Drift
     Staged_Security_Experiment_Composition_Query_Aligned_Witness_Bridge
 begin
 
+section \<open>Relevant Drift and Reachable FRI Evidence\<close>
+
 text \<open>
   Small downstream layer for the refined relevant-drift event.  The purpose is
   to keep diagnostic and bridge lemmas out of the already large current-empty

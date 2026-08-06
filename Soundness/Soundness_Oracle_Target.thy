@@ -8,6 +8,8 @@ theory Soundness_Oracle_Target
   imports Soundness_FRI
 begin
 
+section \<open>Oracle Budgets and Security Experiment\<close>
+
 text \<open>Random-oracle target-hit events and target-budget calculus.\<close>
 
 context soundness

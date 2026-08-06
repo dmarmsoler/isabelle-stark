@@ -8,6 +8,8 @@ theory Completeness_Query
   imports Completeness_Replay
 begin
 
+section \<open>Honest Query Checks\<close>
+
 text \<open>Honest query decommitment values and authenticated query replay.\<close>
 
 context verification

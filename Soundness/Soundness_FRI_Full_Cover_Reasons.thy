@@ -8,6 +8,8 @@ theory Soundness_FRI_Full_Cover_Reasons
   imports Soundness_FRI_Refined_Reachable
 begin
 
+section \<open>FRI Cover and Verifier-Tied Reductions\<close>
+
 text \<open>
   Diagnostic split for missing full sampled FRI cover.
 

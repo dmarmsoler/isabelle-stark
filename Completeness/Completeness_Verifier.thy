@@ -8,6 +8,8 @@ theory Completeness_Verifier
   imports Completeness_FRI
 begin
 
+section \<open>Final Completeness Proof\<close>
+
 text \<open>Final honest verifier query-round replay and completeness theorem.\<close>
 
 context verification

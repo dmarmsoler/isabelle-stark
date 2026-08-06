@@ -8,6 +8,8 @@ theory Completeness_Replay
   imports Completeness_Transcript
 begin
 
+section \<open>Verifier Replay\<close>
+
 text \<open>Verifier replay of honest root, alpha, degree, and FRI-prefix transcript phases.\<close>
 
 context verification

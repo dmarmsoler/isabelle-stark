@@ -10,6 +10,8 @@ theory Staged_Security_Experiment_Alpha_Prequery
     Soundness_Oracle_Dynamic_Target
 begin
 
+section \<open>Staged Composition Accounting\<close>
+
 text \<open>
   Alpha-key prequery support for staged soundness.
 
