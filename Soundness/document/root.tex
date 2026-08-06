@@ -1,4 +1,4 @@
-\documentclass[11pt,a4paper]{scrreprt}
+\documentclass[11pt,a4paper]{scrartcl}
 \usepackage[T1]{fontenc}
 \usepackage{isabelle,isabellesym}
 
@@ -33,10 +33,21 @@
 % for uniform font size
 %\renewcommand{\isastyle}{\isastyleminor}
 
+% The theory sources use Isabelle section commands locally.  In this document
+% we group theories by session first, so theory-level sections are rendered one
+% level below the manual session sections.  Some internal soundness theories
+% start with subsection markup; mapping section and subsection to the same
+% LaTeX level avoids chapter-zero / section-zero numbering in the table of
+% contents.
+\renewcommand{\isamarkupchapter}[1]{\section{#1}}
+\renewcommand{\isamarkupsection}[1]{\subsection{#1}}
+\renewcommand{\isamarkupsubsection}[1]{\subsection{#1}}
+\renewcommand{\isamarkupsubsubsection}[1]{\subsubsection{#1}}
+
 
 \begin{document}
 
-\title{Isabelle/STARK: A Formalization of zk-STARK in Isabelle/HOL}
+\title{An Isabelle/HOL Formalization of a STARK Protocol}
 \author{Diego Marmsoler}
 \publishers{
 Department of Computer Science, University of Exeter, Exeter, UK\texorpdfstring{\\}{, }
@@ -49,7 +60,36 @@ Department of Computer Science, University of Exeter, Exeter, UK\texorpdfstring{
 % sane default for proof documents
 \parindent 0pt\parskip 0.5ex
 
-% generated text of all theories
+% Generated text of all repository sessions.  The Soundness session contributes
+% its own generated session.tex; the other sessions are included explicitly via
+% ROOT/document_theories.
+\section{Core Infrastructure and Protocol}
+\input{NNReal}
+\input{Prob_Dist}
+\input{Hash_Monad}
+\input{Channel_Core}
+\input{Channel_Transcript}
+\input{Channel_Instances}
+\input{Channel}
+\input{Galois_Field_5}
+\input{Merkle_Tree}
+\input{Prob_Monad}
+\input{Stark}
+
+\section{Completeness}
+\input{Completeness_Core}
+\input{Completeness_Algebra}
+\input{Completeness_Transcript}
+\input{Completeness_Replay}
+\input{Completeness_Query}
+\input{Completeness_FRI}
+\input{Completeness_Verifier}
+\input{Completeness}
+
+\section{Executable Example}
+\input{Square_Sequence}
+
+\section{Soundness}
 \input{session}
 
 % optional bibliography
