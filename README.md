@@ -13,15 +13,6 @@ The development does not prove zero knowledge, knowledge extraction, QROM
 security, correspondence to a deployed bit-hash implementation, or an
 unrestricted 137-bit work factor.
 
-Start with [Current results and theorem map](PUBLICATION.md) and
-[Reproduction and trust-manifest checks](REPRODUCING.md).
-
-This snapshot prepares a forthcoming minimal release for
-[dmarmsoler/isabelle-stark](https://github.com/dmarmsoler/isabelle-stark).
-As checked on 21 September 2026, that public repository provides an earlier
-version; public availability of the release described here and its historical
-sources remains pending.
-
 ## Main results and retained example
 
 [PUBLICATION.md](PUBLICATION.md#claim-to-theorem-map) maps the ten selected
@@ -63,9 +54,6 @@ unmodified proof route.
 - The TeX toolchain required by Isabelle's configured PDF output.
 - Optional, for the separate technical report: `latexmk`, `pdflatex` and `bibtex`.
 
-Pinned downloads, checksums, installation instructions and the scope of prior
-reproduction runs are documented in [REPRODUCING.md](REPRODUCING.md).
-
 ## Building and checking
 
 Run the normal build for all four sessions, including the executable example:
@@ -73,16 +61,6 @@ Run the normal build for all four sessions, including the executable example:
 ```sh
 isabelle build -D .
 ```
-
-To build and also export the checked ten-theorem publication manifest:
-
-```sh
-bash tools/check-publication.sh /path/to/Isabelle2025-2/bin/isabelle
-```
-
-The checker runs one normal build, records source hashes and exports the
-manifest without starting another build. The generated proof document is
-[output/document.pdf](output/document.pdf).
 
 Individual sessions can be built separately:
 
@@ -92,8 +70,6 @@ isabelle build -d . Stark_Completeness
 isabelle build -d . Stark_Examples
 isabelle build -d . Stark
 ```
-
-The separate technical report can be built with `make -C report`.
 
 ## Reading guide
 
@@ -108,7 +84,6 @@ The separate technical report can be built with `make -C report`.
    [FS_Square_192_137](Soundness/FS_Square_192_137.thy): generic and concrete soundness.
 6. [Square_Sequence_192_RO_Completeness](Soundness/Square_Sequence_192_RO_Completeness.thy):
    honest acceptance by the absorbing RO verifier.
-7. [REPRODUCING.md](REPRODUCING.md): build, manifest checks and remaining release gates.
 
 ## Related work and contribution
 
@@ -154,9 +129,7 @@ and bias in query sampling.
 This integration yields the square-sequence guarantee stated above, with the
 field and domain obligations and the numerical probability bound proved in
 Isabelle. It also provides reusable proofs connecting adaptive Fiat–Shamir
-execution to the staged soundness analysis. The [report](report/main.pdf)
-gives a more detailed comparison; [PUBLICATION.md](PUBLICATION.md) states the
-precise guarantees and their scope.
+execution to the staged soundness analysis.
 
 ## Acknowledgements
 
