@@ -158,7 +158,7 @@ execution to the staged soundness analysis. The [report](report/main.pdf)
 gives a more detailed comparison; [PUBLICATION.md](PUBLICATION.md) states the
 precise guarantees and their scope.
 
-## ## Acknowledgements
+## Acknowledgements
 
 Parts of this research were carried out using OpenAI's **ChatGPT for Academic Researchers** programme.
 
