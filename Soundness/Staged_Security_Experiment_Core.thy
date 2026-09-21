@@ -277,11 +277,12 @@ lemma staged_phase_query_index_target_error_fraction_bound:
     and subset: "B \<subseteq> query_sample_space"
   shows
     "staged_phase_target_error (query_index_raw_preimage B) q \<le>
-      nnreal q * (nnreal (card B) / nnreal (card query_sample_space))"
+      nnreal q *
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
 proof -
   have raw:
     "nnreal (card (query_index_raw_preimage B)) / nnreal size \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
     using raw_bound subset unfolding query_index_raw_preimage_bound_def
     by blast
   have eq:
@@ -297,19 +298,20 @@ qed
 lemma staged_phase_query_index_target_error_query_bound:
   assumes raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le> C"
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le> C"
   shows
     "staged_phase_target_error (query_index_raw_preimage B) q \<le>
       nnreal q * C"
 proof -
   have
     "staged_phase_target_error (query_index_raw_preimage B) q \<le>
-      nnreal q * (nnreal (card B) / nnreal (card query_sample_space))"
+      nnreal q *
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
     by (rule staged_phase_query_index_target_error_fraction_bound
         [OF raw_bound subset])
   also have "... \<le> nnreal q * C"
-    by (rule mult_left_mono) (use frac in simp_all)
+    by (rule mult_left_mono) (use envelope in simp_all)
   finally show ?thesis .
 qed
 
@@ -326,6 +328,25 @@ definition record_staged_messages
   :: "'f list \<Rightarrow> (unit, 'f protocol_channel) state_monad"
   where
     "record_staged_messages xs = mfold2 record_staged_message xs"
+
+definition ro_record_staged_message
+  :: "'f \<Rightarrow> (unit, 'f protocol_channel) state_monad"
+  where
+    "ro_record_staged_message x =
+      do {
+        s \<leftarrow> get;
+        h \<leftarrow> (hash (TranscriptAbsorb (PState s) x) ::
+          ('f, 'f protocol_channel) state_monad);
+        modify
+          (\<lambda>s. s\<lparr>
+            PState := h,
+            PTranscript := PTranscript s @ [x]\<rparr>)
+      }"
+
+definition ro_record_staged_messages
+  :: "'f list \<Rightarrow> (unit, 'f protocol_channel) state_monad"
+  where
+    "ro_record_staged_messages xs = mfold2 ro_record_staged_message xs"
 
 primrec staged_trace_fri_program
   :: "'f staged_adversary \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'f list \<Rightarrow>
@@ -463,6 +484,114 @@ definition checked_staged_transcript_program
         record_staged_message composition_final;
         query_chunks \<leftarrow>
           checked_staged_query_program A trace_roots composition_roots
+            0 rounds;
+        return
+          \<lparr>staged_trace_root = fr,
+           staged_trace_fri_roots = trace_roots,
+           staged_trace_fri_challenges = trace_bs,
+           staged_trace_final = trace_final,
+           staged_alphas = as,
+           staged_degree = dg,
+           staged_composition_fri_roots = composition_roots,
+           staged_composition_fri_challenges = composition_bs,
+           staged_composition_final = composition_final,
+           staged_query_chunks = query_chunks\<rparr>
+      }"
+
+primrec ro_staged_trace_fri_program
+  :: "'f staged_adversary \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'f list \<Rightarrow>
+      ('f list \<times> 'f list, 'f protocol_channel) state_monad"
+where
+  "ro_staged_trace_fri_program A i 0 bs = return ([], bs)"
+| "ro_staged_trace_fri_program A i (Suc n) bs =
+    do {
+      root \<leftarrow> trace_fri_root_stage A i bs;
+      ro_record_staged_message root;
+      b \<leftarrow> receive_trace_fri_challenge;
+      (roots, bs') \<leftarrow> ro_staged_trace_fri_program A (Suc i) n (bs @ [b]);
+      return (root # roots, bs')
+    }"
+
+primrec ro_staged_alpha_program
+  :: "nat \<Rightarrow> ('f list, 'f protocol_channel) state_monad"
+where
+  "ro_staged_alpha_program 0 = return []"
+| "ro_staged_alpha_program (Suc n) =
+    do {
+      a \<leftarrow> receive_alpha_challenge;
+      ro_record_staged_message a;
+      as \<leftarrow> ro_staged_alpha_program n;
+      return (a # as)
+    }"
+
+primrec ro_staged_composition_fri_program
+  :: "'f staged_adversary \<Rightarrow> 'f \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow>
+      'f list \<Rightarrow>
+      ('f list \<times> 'f list, 'f protocol_channel) state_monad"
+where
+  "ro_staged_composition_fri_program A dg i 0 bs = return ([], bs)"
+| "ro_staged_composition_fri_program A dg i (Suc n) bs =
+    do {
+      root \<leftarrow> composition_fri_root_stage A dg i bs;
+      ro_record_staged_message root;
+      b \<leftarrow> receive_composition_fri_challenge;
+      (roots, bs') \<leftarrow>
+        ro_staged_composition_fri_program A dg (Suc i) n (bs @ [b]);
+      return (root # roots, bs')
+    }"
+
+primrec ro_checked_staged_query_program
+  :: "'f staged_adversary \<Rightarrow> 'f list \<Rightarrow> 'f list \<Rightarrow>
+      nat \<Rightarrow> nat \<Rightarrow> ('f list list, 'f protocol_channel) state_monad"
+where
+  "ro_checked_staged_query_program A trace_roots composition_roots i 0 =
+    return []"
+| "ro_checked_staged_query_program A trace_roots composition_roots i (Suc n) =
+    do {
+      raw \<leftarrow> receive_query_index_challenge;
+      let idx = index (to_nat raw);
+      chunk \<leftarrow> query_opening_stage A i raw;
+      assert
+        (verifier_query_round_chunk idx trace_roots composition_roots chunk);
+      ro_record_staged_messages chunk;
+      chunks \<leftarrow>
+        ro_checked_staged_query_program A trace_roots composition_roots
+          (Suc i) n;
+      return (chunk # chunks)
+    }"
+
+text \<open>
+  The RO-checked staged transcript is the migration target for public
+  soundness: every transcript absorption is represented by a domain-separated
+  random-oracle query.  The legacy checked program remains available while the
+  proof route is migrated, so existing deterministic replay lemmas are not
+  silently reinterpreted.
+\<close>
+
+definition ro_checked_staged_transcript_program
+  :: "'f staged_adversary \<Rightarrow>
+      ('f staged_proof_data, 'f protocol_channel) state_monad"
+  where
+    "ro_checked_staged_transcript_program A =
+      do {
+        fr \<leftarrow> trace_root_stage A;
+        ro_record_staged_message fr;
+        (trace_roots, trace_bs) \<leftarrow>
+          ro_staged_trace_fri_program A 0 (ceil_log clength) [];
+        trace_final \<leftarrow> trace_final_stage A trace_bs;
+        ro_record_staged_message trace_final;
+        as \<leftarrow> ro_staged_alpha_program (length spec);
+        dg \<leftarrow> degree_stage A as;
+        ro_record_staged_message dg;
+        let composition_rounds = ceil_log (to_nat dg + 1);
+        assert (composition_rounds \<le> ceil_log (maxDegree + 1));
+        (composition_roots, composition_bs) \<leftarrow>
+          ro_staged_composition_fri_program A dg 0 composition_rounds [];
+        composition_final \<leftarrow>
+          composition_final_stage A dg composition_bs;
+        ro_record_staged_message composition_final;
+        query_chunks \<leftarrow>
+          ro_checked_staged_query_program A trace_roots composition_roots
             0 rounds;
         return
           \<lparr>staged_trace_root = fr,

@@ -306,14 +306,15 @@ lemma staged_query_prefix_committed_query_target_fraction_bound_if_unique_candid
         {(trace_table, composition_table)}"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_committed_query_target prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_committed_query_target prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_committed_query_target_def
   by (rule
       query_header_committed_union_good_sets_fraction_bound_if_unique_candidate
       [OF unique query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space])
+        query_sampling_success_space_envelope_fraction_bound])
 
 lemma staged_query_prefix_committed_query_target_fraction_bound_if_no_root_collisions:
   assumes trace_clean:
@@ -325,9 +326,10 @@ lemma staged_query_prefix_committed_query_target_fraction_bound_if_no_root_colli
         \<not> merkle_root_binding_collision rt prefix_state"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_committed_query_target prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_committed_query_target prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have unique:
     "\<exists>trace_table composition_table.
@@ -492,10 +494,11 @@ lemma staged_query_prefix_length_committed_query_target_fraction_bound_if_no_has
   assumes clean: "\<not> hash_map_output_collision prefix_state"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_length_committed_query_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_length_committed_query_target prefix
+            prefix_state))) /
+      nnreal size \<le> query_error_bound"
 proof -
   from
     staged_query_prefix_length_committed_table_candidates_subset_singleton_if_no_hash_collision
@@ -525,42 +528,57 @@ proof -
       (query_sampling_success_space trace_table composition_table
         (sqp_alphas prefix))"
     by (rule card_mono[OF finite_good union_subset])
+  have envelope_le:
+    "query_raw_preimage_card_envelope
+      (card
+        (staged_query_prefix_length_committed_query_target prefix
+          prefix_state)) \<le>
+     query_raw_preimage_card_envelope
+      (card
+        (query_sampling_success_space trace_table composition_table
+          (sqp_alphas prefix)))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
   have "nnreal
-        (card
-          (staged_query_prefix_length_committed_query_target prefix
-            prefix_state)) /
-      nnreal (card query_sample_space) \<le>
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_length_committed_query_target prefix
+              prefix_state))) /
+      nnreal size \<le>
       nnreal
-        (card
-          (query_sampling_success_space trace_table composition_table
-            (sqp_alphas prefix))) /
-      nnreal (card query_sample_space)"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
+        (query_raw_preimage_card_envelope
+          (card
+            (query_sampling_success_space trace_table composition_table
+              (sqp_alphas prefix)))) /
+      nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
   also have "... \<le> query_error_bound"
-    by (rule query_sampling_success_space_fraction_bound_query_sample_space)
+    by (rule query_sampling_success_space_envelope_fraction_bound)
   finally show ?thesis .
 qed
 
 lemma staged_query_prefix_clean_length_committed_query_target_fraction_bound:
   shows
   "nnreal
-    (card
-      (staged_query_prefix_clean_length_committed_query_target prefix
-        prefix_state)) /
-    nnreal (card query_sample_space) \<le> query_error_bound"
+    (query_raw_preimage_card_envelope
+      (card
+        (staged_query_prefix_clean_length_committed_query_target prefix
+          prefix_state))) /
+    nnreal size \<le> query_error_bound"
 proof (cases "hash_map_output_collision prefix_state")
   case True
   then show ?thesis
     unfolding staged_query_prefix_clean_length_committed_query_target_def
+      query_raw_preimage_card_envelope_def
     by simp
 next
   case False
   have bound:
     "nnreal
-      (card
-        (staged_query_prefix_length_committed_query_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_length_committed_query_target prefix
+            prefix_state))) /
+      nnreal size \<le> query_error_bound"
     by (rule
         staged_query_prefix_length_committed_query_target_fraction_bound_if_no_hash_collision
         [OF False])
@@ -622,9 +640,11 @@ lemma staged_query_prefix_clean_committed_query_target_subset_committed:
 
 lemma staged_query_prefix_clean_committed_query_target_fraction_bound:
   shows "nnreal
-    (card
-      (staged_query_prefix_clean_committed_query_target prefix prefix_state)) /
-    nnreal (card query_sample_space) \<le> query_error_bound"
+    (query_raw_preimage_card_envelope
+      (card
+        (staged_query_prefix_clean_committed_query_target prefix
+          prefix_state))) /
+    nnreal size \<le> query_error_bound"
 proof (cases
     "staged_query_prefix_committed_roots_clean prefix prefix_state")
   case True
@@ -645,7 +665,9 @@ proof (cases
 next
   case False
   then show ?thesis
-    unfolding staged_query_prefix_clean_committed_query_target_def by simp
+    unfolding staged_query_prefix_clean_committed_query_target_def
+      query_raw_preimage_card_envelope_def
+    by simp
 qed
 
 lemma checked_staged_query_prefix_committed_hit_imp_clean_hit_or_root_collision:
@@ -710,13 +732,15 @@ lemma staged_partial_query_target_fraction_bound_if_unique_candidate:
         (staged_composition_final data) \<subseteq>
         {(trace_table, composition_table)}"
   shows
-    "nnreal (card (staged_partial_query_target data attacker_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+    "nnreal
+      (query_raw_preimage_card_envelope
+        (card (staged_partial_query_target data attacker_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_partial_query_target_def
   by (rule
       query_header_supported_partial_union_good_sets_fraction_bound_if_unique_candidate
       [OF unique query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space])
+        query_sampling_success_space_envelope_fraction_bound])
 
 definition checked_staged_query_prefix_fixed_transcript_target_hit
   :: "'f staged_proof_data \<Rightarrow> 'f protocol_channel \<Rightarrow>
@@ -738,8 +762,10 @@ lemma checked_staged_query_prefix_dynamic_index_hit_bound:
             (execute (checked_staged_query_prefix_with_state A i) s) \<Longrightarrow>
         query_future_fresh prefix_state \<and>
         B prefix prefix_state \<subseteq> query_sample_space \<and>
-        nnreal (card (B prefix prefix_state)) /
-          nnreal (card query_sample_space) \<le> C"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (B prefix prefix_state))) /
+          nnreal size \<le> C"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
       (checked_staged_query_prefix_dynamic_index_hit B) s \<le> C"
@@ -773,8 +799,10 @@ next
     and subset:
       "B prefix prefix_state \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card (B prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> C"
+      "nnreal
+        (query_raw_preimage_card_envelope
+          (card (B prefix prefix_state))) /
+        nnreal size \<le> C"
     by blast+
   have receive_bound:
     "wp_event
@@ -827,8 +855,10 @@ lemma checked_staged_query_prefix_fixed_transcript_target_hit_bound:
     and subset: "staged_partial_query_target data attacker_state \<subseteq>
         query_sample_space"
     and frac:
-      "nnreal (card (staged_partial_query_target data attacker_state)) /
-        nnreal (card query_sample_space) \<le> C"
+      "nnreal
+        (query_raw_preimage_card_envelope
+          (card (staged_partial_query_target data attacker_state))) /
+        nnreal size \<le> C"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
       (checked_staged_query_prefix_fixed_transcript_target_hit data
@@ -879,9 +909,10 @@ proof (rule checked_staged_query_prefix_dynamic_index_hit_bound
      staged_query_prefix_committed_query_target prefix prefix_state
        \<subseteq> query_sample_space \<and>
      nnreal
-       (card
-         (staged_query_prefix_committed_query_target prefix prefix_state)) /
-       nnreal (card query_sample_space) \<le> query_error_bound"
+       (query_raw_preimage_card_envelope
+         (card
+           (staged_query_prefix_committed_query_target prefix prefix_state))) /
+       nnreal size \<le> query_error_bound"
     using future
       staged_query_prefix_committed_query_target_subset[of prefix prefix_state]
       staged_query_prefix_committed_query_target_fraction_bound_if_no_root_collisions
@@ -2089,8 +2120,10 @@ lemma checked_staged_query_prefix_dynamic_index_fresh_output_hit_bound:
           set_dist
             (execute (checked_staged_query_prefix_with_state A i) s) \<Longrightarrow>
         B prefix prefix_state \<subseteq> query_sample_space \<and>
-        nnreal (card (B prefix prefix_state)) /
-          nnreal (card query_sample_space) \<le> C"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (B prefix prefix_state))) /
+          nnreal size \<le> C"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
       (checked_staged_query_prefix_dynamic_index_fresh_output_hit B) s \<le> C"
@@ -2123,24 +2156,25 @@ next
     by simp
   from prefix_bound[OF support'] have subset:
       "B prefix prefix_state \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card (B prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> C"
+    and envelope:
+      "nnreal
+        (query_raw_preimage_card_envelope
+          (card (B prefix prefix_state))) /
+        nnreal size \<le> C"
     by blast+
+  have raw_envelope:
+    "nnreal (card (query_index_raw_preimage (B prefix prefix_state))) /
+      nnreal size \<le>
+     nnreal
+       (query_raw_preimage_card_envelope
+         (card (B prefix prefix_state))) /
+       nnreal size"
+    using raw_bound subset
+    unfolding query_index_raw_preimage_bound_def by auto
   have raw_frac:
     "nnreal (card (query_index_raw_preimage (B prefix prefix_state))) /
       nnreal size \<le> C"
-  proof -
-    have "nnreal (card (query_index_raw_preimage (B prefix prefix_state))) /
-        nnreal size \<le>
-      nnreal (card (B prefix prefix_state)) /
-        nnreal (card query_sample_space)"
-      using raw_bound subset unfolding query_index_raw_preimage_bound_def
-      by blast
-    also have "... \<le> C"
-      by (rule frac)
-    finally show ?thesis .
-  qed
+    by (rule order_trans[OF raw_envelope envelope])
   have cont_eq:
     "wp_event
       (receive_query_index_challenge \<bind> (\<lambda>raw.
@@ -2180,8 +2214,10 @@ lemma checked_staged_query_prefix_dynamic_index_hit_bound_by_prehit_and_query_er
           set_dist
             (execute (checked_staged_query_prefix_with_state A i) s) \<Longrightarrow>
         B prefix prefix_state \<subseteq> query_sample_space \<and>
-        nnreal (card (B prefix prefix_state)) /
-          nnreal (card query_sample_space) \<le> C"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (B prefix prefix_state))) /
+          nnreal size \<le> C"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
       (checked_staged_query_prefix_dynamic_index_hit B) s \<le>
@@ -2220,6 +2256,25 @@ proof -
   finally show ?thesis .
 qed
 
+lemma query_sample_space_envelope_fraction_le_one:
+  assumes subset: "B \<subseteq> query_sample_space"
+  shows
+    "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
+      (1::prob)"
+proof -
+  have card_le: "card B \<le> query_sample_space_size"
+    using card_mono[OF finite_query_sample_space subset] by simp
+  have envelope_le:
+    "query_raw_preimage_card_envelope (card B) \<le> size"
+    by (rule query_raw_preimage_card_envelope_le_size[OF card_le])
+  have "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
+      nnreal size / nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
+  also have "... = (1::prob)"
+    by (rule nnreal_nat_divide_self) (simp add: size_card)
+  finally show ?thesis .
+qed
+
 lemma checked_staged_query_prefix_partial_target_hit_bound_by_prehit_plus_one:
   assumes raw_bound: "query_index_raw_preimage_bound"
   shows
@@ -2240,17 +2295,21 @@ proof (rule
     "staged_query_prefix_partial_query_target i prefix prefix_state \<subseteq>
       query_sample_space"
     by (rule staged_query_prefix_partial_query_target_subset)
-  have frac:
+  have envelope:
     "nnreal
-      (card (staged_query_prefix_partial_query_target i prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> (1::prob)"
-    by (rule query_sample_space_fraction_le_one[OF subset])
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_partial_query_target i prefix prefix_state))) /
+      nnreal size \<le> (1::prob)"
+    by (rule query_sample_space_envelope_fraction_le_one[OF subset])
   show "staged_query_prefix_partial_query_target i prefix prefix_state \<subseteq>
       query_sample_space \<and>
     nnreal
-      (card (staged_query_prefix_partial_query_target i prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> (1::prob)"
-    using subset frac by blast
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_partial_query_target i prefix prefix_state))) /
+      nnreal size \<le> (1::prob)"
+    using subset envelope by blast
 qed
 
 lemma checked_staged_query_prefix_partial_target_hit_bound_by_relation_plus_one:
@@ -2343,11 +2402,12 @@ proof -
           staged_query_prefix_committed_query_target prefix prefix_state)
         prefix prefix_state \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          ((\<lambda>prefix prefix_state.
-            staged_query_prefix_committed_query_target prefix prefix_state)
-            prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            ((\<lambda>prefix prefix_state.
+              staged_query_prefix_committed_query_target prefix prefix_state)
+              prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using
         staged_query_prefix_committed_query_target_subset[of prefix prefix_state]
         staged_query_prefix_committed_query_target_fraction_bound_if_no_root_collisions
@@ -2400,18 +2460,20 @@ proof -
       by (rule staged_query_prefix_clean_committed_query_target_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_clean_committed_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_clean_committed_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule staged_query_prefix_clean_committed_query_target_fraction_bound)
     show "staged_query_prefix_clean_committed_query_target prefix prefix_state
         \<subseteq> query_sample_space \<and>
       nnreal
-        (card
-          (staged_query_prefix_clean_committed_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_clean_committed_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   also have "... \<le>
@@ -2545,18 +2607,20 @@ proof -
       by (rule staged_query_prefix_clean_length_committed_query_target_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_clean_length_committed_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_clean_length_committed_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule staged_query_prefix_clean_length_committed_query_target_fraction_bound)
     show "staged_query_prefix_clean_length_committed_query_target prefix
         prefix_state \<subseteq> query_sample_space \<and>
       nnreal
-        (card
-          (staged_query_prefix_clean_length_committed_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_clean_length_committed_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   also have "... \<le>

@@ -498,14 +498,17 @@ lemma query_header_supported_partial_union_good_sets_fraction_bound_if_no_cross_
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bounded:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_supported_partial_union_good_sets s good_sets fr
-          f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_partial_union_good_sets s good_sets fr
+            f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have unique:
     "\<exists>trace_table composition_table.
@@ -529,14 +532,17 @@ lemma query_header_supported_partial_union_good_sets_fraction_bound_if_no_global
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bounded:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_supported_partial_union_good_sets s good_sets fr
-          f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_partial_union_good_sets s good_sets fr
+            f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
 proof (rule
     query_header_supported_partial_union_good_sets_fraction_bound_if_no_cross_or_merkle_bad
     [OF _ subset bounded])
@@ -558,8 +564,10 @@ lemma wp_query_index_round_set_hit_bound_if_no_global_cross_or_merkle_bad:
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bounded:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
     and collision_bound:
       "wp_event verify_monad (hash_map_output_collision_bad s) s \<le> H"
   shows
@@ -571,10 +579,11 @@ proof (rule
   fix fr f_fri_roots f_final as dg composition_fri_roots final
   show
     "nnreal
-      (card
-        (query_header_supported_partial_union_good_sets s good_sets fr
-          f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_partial_union_good_sets s good_sets fr
+            f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
     by (rule
         query_header_supported_partial_union_good_sets_fraction_bound_if_no_global_cross_or_merkle_bad
         [OF no_bad subset bounded])

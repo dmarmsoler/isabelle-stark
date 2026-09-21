@@ -252,7 +252,7 @@ lemma wp_ntimes_verifier_query_round_program_index_list_bound:
     "wp_event
       (ntimes (verifier_query_round_program fr f_fl f_final as fl final) n)
       (query_rounds_index_list_hit s query_idxs n) s \<le>
-      (1 / nnreal (card query_sample_space)) ^ n"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ n"
   using future len_query subset
 proof (induction n arbitrary: s query_idxs)
   case 0
@@ -264,7 +264,7 @@ proof (induction n arbitrary: s query_idxs)
 next
   case (Suc n)
   let ?prog = "verifier_query_round_program fr f_fl f_final as fl final"
-  let ?p = "1 / nnreal (card query_sample_space)"
+  let ?p = "nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
   let ?Q = "query_rounds_index_list_hit s query_idxs (Suc n)"
   let ?Head = "query_round_any_index_set_hit s {query_idxs ! 0}"
   have query0_in: "query_idxs ! 0 \<in> query_sample_space"
@@ -276,8 +276,10 @@ next
   proof -
     have base:
       "wp_event ?prog ?Head s \<le>
-        nnreal (card {query_idxs ! 0}) /
-          nnreal (card query_sample_space)"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card {query_idxs ! 0})) /
+          nnreal size"
       by (rule wp_verifier_query_round_program_any_index_set_bound
           [OF Suc.prems(1) raw_bound singleton_subset])
     then show ?thesis
@@ -438,7 +440,7 @@ lemma wp_ntimes_verifier_query_round_program_index_list_set_bound:
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs n out) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ n"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ n"
 proof -
   have
     "wp_event
@@ -446,13 +448,13 @@ proof -
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs n out) s \<le>
       (\<Sum>query_idxs\<in>Q.
-        (1 / nnreal (card query_sample_space)) ^ n)"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ n)"
     by (rule wp_event_finite_UN_bound[OF finite_Q])
       (rule wp_ntimes_verifier_query_round_program_index_list_bound
         [OF future raw_bound lengths subsets])
   also have "... =
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ n"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ n"
     using finite_Q by simp
   finally show ?thesis .
 qed
@@ -468,7 +470,7 @@ lemma wp_ntimes_verifier_query_round_program_fri_index_list_set_bound:
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have finite_Q: "finite Q"
     using subset by (rule finite_subset) (rule finite_fri_query_index_list_space)
@@ -922,16 +924,20 @@ lemma wp_trace_fri_query_index_list_set_hit_bound_from_entries:
   shows
     "wp_event verify_monad (trace_fri_query_index_list_set_hit s Q) s \<le>
       nnreal rounds *
-        (nnreal (card (query_index_list_entries Q)) /
-          nnreal (card query_sample_space))"
+        (nnreal
+          (query_raw_preimage_card_envelope
+            (card (query_index_list_entries Q))) /
+          nnreal size)"
 proof -
   have event_bound:
     "wp_event verify_monad
       (query_rounds_any_index_set_hit s (query_index_list_entries Q) rounds)
       s \<le>
       nnreal rounds *
-        (nnreal (card (query_index_list_entries Q)) /
-          nnreal (card query_sample_space))"
+        (nnreal
+          (query_raw_preimage_card_envelope
+            (card (query_index_list_entries Q))) /
+          nnreal size)"
     by (rule wp_verify_monad_query_rounds_any_index_set_bound
         [OF future raw_bound
           query_index_list_entries_subset_query_sample_space[OF subset]])
@@ -948,16 +954,20 @@ lemma wp_composition_fri_query_index_list_set_hit_bound_from_entries:
   shows
     "wp_event verify_monad (composition_fri_query_index_list_set_hit s Q) s \<le>
       nnreal rounds *
-        (nnreal (card (query_index_list_entries Q)) /
-          nnreal (card query_sample_space))"
+        (nnreal
+          (query_raw_preimage_card_envelope
+            (card (query_index_list_entries Q))) /
+          nnreal size)"
 proof -
   have event_bound:
     "wp_event verify_monad
       (query_rounds_any_index_set_hit s (query_index_list_entries Q) rounds)
       s \<le>
       nnreal rounds *
-        (nnreal (card (query_index_list_entries Q)) /
-          nnreal (card query_sample_space))"
+        (nnreal
+          (query_raw_preimage_card_envelope
+            (card (query_index_list_entries Q))) /
+          nnreal size)"
     by (rule wp_verify_monad_query_rounds_any_index_set_bound
         [OF future raw_bound
           query_index_list_entries_subset_query_sample_space[OF subset]])

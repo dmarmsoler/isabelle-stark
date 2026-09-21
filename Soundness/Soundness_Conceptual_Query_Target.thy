@@ -74,29 +74,32 @@ lemma staged_query_prefix_conceptual_empty_query_target_subset:
 
 lemma staged_query_prefix_conceptual_query_target_fraction_bound:
     "nnreal
-      (card
-        (staged_query_prefix_conceptual_query_target prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_conceptual_query_target prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_conceptual_query_target_def
-  by (rule query_sampling_success_space_fraction_bound_query_sample_space)
+  by (rule query_sampling_success_space_envelope_fraction_bound)
 
 lemma staged_query_prefix_conceptual_default_query_target_fraction_bound:
     "nnreal
-      (card
-        (staged_query_prefix_conceptual_default_query_target trace_default
-          composition_default prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_conceptual_default_query_target trace_default
+            composition_default prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_conceptual_default_query_target_def
-  by (rule query_sampling_success_space_fraction_bound_query_sample_space)
+  by (rule query_sampling_success_space_envelope_fraction_bound)
 
 lemma staged_query_prefix_conceptual_empty_query_target_fraction_bound:
     "nnreal
-      (card
-        (staged_query_prefix_conceptual_empty_query_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_conceptual_empty_query_target prefix
+            prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_conceptual_empty_query_target_def
-  by (rule query_sampling_success_space_fraction_bound_query_sample_space)
+  by (rule query_sampling_success_space_envelope_fraction_bound)
 
 lemma query_prefix_trace_conceptual_table_with_default_eq_if_agrees:
   assumes clean: "\<not> hash_map_output_collision prefix_state"
@@ -904,9 +907,10 @@ proof (rule checked_staged_query_prefix_dynamic_index_hit_bound[OF raw_bound])
      staged_query_prefix_conceptual_query_target prefix prefix_state
        \<subseteq> query_sample_space \<and>
      nnreal
-       (card
-         (staged_query_prefix_conceptual_query_target prefix prefix_state)) /
-       nnreal (card query_sample_space) \<le> query_error_bound"
+       (query_raw_preimage_card_envelope
+         (card
+           (staged_query_prefix_conceptual_query_target prefix prefix_state))) /
+       nnreal size \<le> query_error_bound"
     using future
       staged_query_prefix_conceptual_query_target_subset[of prefix prefix_state]
       staged_query_prefix_conceptual_query_target_fraction_bound
@@ -957,10 +961,11 @@ proof (rule checked_staged_query_prefix_dynamic_index_hit_bound[OF raw_bound])
      staged_query_prefix_conceptual_default_query_target trace_default
        composition_default prefix prefix_state \<subseteq> query_sample_space \<and>
      nnreal
-       (card
-         (staged_query_prefix_conceptual_default_query_target trace_default
-           composition_default prefix prefix_state)) /
-       nnreal (card query_sample_space) \<le> query_error_bound"
+       (query_raw_preimage_card_envelope
+         (card
+           (staged_query_prefix_conceptual_default_query_target trace_default
+             composition_default prefix prefix_state))) /
+       nnreal size \<le> query_error_bound"
     using future
       staged_query_prefix_conceptual_default_query_target_subset
       staged_query_prefix_conceptual_default_query_target_fraction_bound
@@ -1012,10 +1017,11 @@ proof (rule checked_staged_query_prefix_dynamic_index_hit_bound[OF raw_bound])
      staged_query_prefix_conceptual_empty_query_target prefix prefix_state
        \<subseteq> query_sample_space \<and>
      nnreal
-       (card
-         (staged_query_prefix_conceptual_empty_query_target prefix
-           prefix_state)) /
-       nnreal (card query_sample_space) \<le> query_error_bound"
+       (query_raw_preimage_card_envelope
+         (card
+           (staged_query_prefix_conceptual_empty_query_target prefix
+             prefix_state))) /
+       nnreal size \<le> query_error_bound"
     using future
       staged_query_prefix_conceptual_empty_query_target_subset
       staged_query_prefix_conceptual_empty_query_target_fraction_bound
@@ -1153,10 +1159,11 @@ proof -
       "staged_query_prefix_conceptual_query_target prefix prefix_state
         \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_conceptual_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_conceptual_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using staged_query_prefix_conceptual_query_target_subset
         staged_query_prefix_conceptual_query_target_fraction_bound
       by blast
@@ -1215,10 +1222,11 @@ proof -
       "staged_query_prefix_conceptual_default_query_target trace_default
         composition_default prefix prefix_state \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_conceptual_default_query_target trace_default
-            composition_default prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_conceptual_default_query_target trace_default
+              composition_default prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using staged_query_prefix_conceptual_default_query_target_subset
         staged_query_prefix_conceptual_default_query_target_fraction_bound
       by blast
@@ -1276,10 +1284,11 @@ proof -
       "staged_query_prefix_conceptual_empty_query_target prefix prefix_state
         \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_conceptual_empty_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_conceptual_empty_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using staged_query_prefix_conceptual_empty_query_target_subset
         staged_query_prefix_conceptual_empty_query_target_fraction_bound
       by blast

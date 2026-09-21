@@ -1248,7 +1248,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound:
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -1291,7 +1291,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bound
         [OF raw_bound wf controlled])
       (use i_bound in simp)
@@ -1311,7 +1311,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound_fro
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1334,7 +1334,7 @@ lemma checked_staged_security_with_query_prefix_fixed_current_authenticated_comp
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -1358,7 +1358,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_query_prefix_authenticated_opening_hit_bound
         [OF raw_bound wf controlled i_bound])
   show ?thesis
@@ -1377,7 +1377,7 @@ lemma checked_staged_security_with_query_prefix_fixed_current_authenticated_comp
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1785,7 +1785,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound_fro
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have current_bound:
     "wp_event
@@ -1795,7 +1795,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_query_prefix_fixed_current_authenticated_component_bound
         [OF raw_bound wf controlled i_bound])
@@ -1823,7 +1823,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound_fro
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1852,7 +1852,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound_fro
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have current_bound:
     "wp_event
@@ -1862,7 +1862,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_query_prefix_fixed_current_authenticated_component_bound
         [OF raw_bound wf controlled i_bound])
@@ -1890,7 +1890,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound_fro
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1923,7 +1923,7 @@ lemma checked_staged_security_with_query_prefix_fixed_header_component_bound_fro
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + R + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + R + Q"
 proof -
   have current_bound:
     "wp_event
@@ -1933,7 +1933,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_query_prefix_fixed_current_authenticated_component_bound
         [OF raw_bound wf controlled i_bound])
@@ -1954,7 +1954,7 @@ proof -
       adversary_initial_state \<le>
       (staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-       (1::prob) / nnreal (card query_sample_space)) + R + Q"
+       nnreal (query_raw_preimage_card_envelope 1) / nnreal size) + R + Q"
     by (rule
         checked_staged_security_with_query_prefix_fixed_header_component_bound_from_current_pre_and_witness_new_hit
         [OF wf controlled i_bound current_bound pre_hit_bound new_bound])
@@ -1979,7 +1979,7 @@ lemma checked_staged_security_with_data_state_bound_by_query_prefix_fixed_header
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have projection:
     "wp_event (checked_staged_security_experiment_with_data_state A) E
@@ -2014,7 +2014,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_query_prefix_fixed_header_component_bound
         [OF raw_bound wf controlled i_bound])
   show ?thesis
@@ -2038,7 +2038,7 @@ lemma checked_staged_security_with_data_state_bound_by_query_prefix_fixed_header
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -2071,7 +2071,7 @@ lemma checked_staged_security_with_data_state_bound_by_query_prefix_fixed_header
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have projection:
     "wp_event (checked_staged_security_experiment_with_data_state A) E
@@ -2106,7 +2106,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
     by (rule
         checked_staged_security_with_query_prefix_fixed_header_component_bound_from_witness_path_output
         [OF raw_bound wf controlled i_bound path_bound])
@@ -2137,7 +2137,7 @@ lemma checked_staged_security_with_data_state_bound_by_query_prefix_fixed_header
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -2170,7 +2170,7 @@ lemma checked_staged_security_with_actual_alpha_prefix_data_state_bound_by_query
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   let ?project =
     "\<lambda>x. ((snd (fst (fst x)), snd (fst x)), snd x)"
@@ -2213,7 +2213,7 @@ proof -
       D adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_data_state_bound_by_query_prefix_fixed_header_component
         [OF raw_bound wf controlled i_bound event_imp])
@@ -2244,7 +2244,7 @@ lemma checked_staged_security_with_actual_alpha_prefix_data_state_bound_by_query
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -2283,7 +2283,7 @@ lemma checked_staged_security_with_actual_alpha_prefix_data_state_bound_by_query
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   let ?project =
     "\<lambda>x. ((snd (fst (fst x)), snd (fst x)), snd x)"
@@ -2326,7 +2326,7 @@ proof -
       D adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
     by (rule
         checked_staged_security_with_data_state_bound_by_query_prefix_fixed_header_component_from_witness_path_output
         [OF raw_bound wf controlled i_bound path_bound event_imp])
@@ -2363,7 +2363,7 @@ lemma checked_staged_security_with_actual_alpha_prefix_data_state_bound_by_query
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -2386,7 +2386,7 @@ lemma checked_staged_security_with_query_prefix_header_authenticated_candidate_o
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -2414,7 +2414,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bound
         [OF raw_bound wf controlled])
       (use i_bound in simp)
@@ -2434,7 +2434,7 @@ lemma checked_staged_security_with_query_prefix_header_authenticated_candidate_o
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)

@@ -407,16 +407,18 @@ lemma finite_staged_query_prefix_prefix_authenticated_trace_indices[simp]:
 lemma staged_query_prefix_prefix_authenticated_opening_target_fraction_bound_if_trace_indices:
   assumes trace_frac:
       "nnreal
-        (card
-          (staged_query_prefix_prefix_authenticated_trace_indices prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_prefix_authenticated_trace_indices prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_prefix_authenticated_opening_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_prefix_authenticated_opening_target prefix
+            prefix_state))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have card_le:
     "card
@@ -428,18 +430,30 @@ proof -
     by (rule card_mono)
       (simp,
         rule staged_query_prefix_prefix_authenticated_opening_target_subset_trace_indices)
-  have
-    "nnreal
+  have envelope_le:
+    "query_raw_preimage_card_envelope
       (card
         (staged_query_prefix_prefix_authenticated_opening_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le>
-     nnreal
+          prefix_state)) \<le>
+     query_raw_preimage_card_envelope
       (card
         (staged_query_prefix_prefix_authenticated_trace_indices prefix
-          prefix_state)) /
-      nnreal (card query_sample_space)"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
+          prefix_state))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  have
+    "nnreal
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_prefix_authenticated_opening_target prefix
+            prefix_state))) /
+      nnreal size \<le>
+     nnreal
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_prefix_authenticated_trace_indices prefix
+            prefix_state))) /
+      nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
   also have "... \<le> query_error_bound"
     by (rule trace_frac)
   finally show ?thesis .
@@ -456,10 +470,11 @@ lemma checked_staged_query_prefix_prefix_authenticated_target_hit_bound_from_tra
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
       (checked_staged_query_prefix_dynamic_index_hit
@@ -494,10 +509,11 @@ proof -
       by (rule staged_query_prefix_prefix_authenticated_opening_target_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_prefix_authenticated_opening_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_prefix_authenticated_opening_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule
           staged_query_prefix_prefix_authenticated_opening_target_fraction_bound_if_trace_indices)
         (rule trace_frac[OF support])
@@ -505,10 +521,11 @@ proof -
       "staged_query_prefix_prefix_authenticated_opening_target prefix
           prefix_state \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_prefix_authenticated_opening_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_prefix_authenticated_opening_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   have prehit_bound:
@@ -821,10 +838,11 @@ lemma checked_staged_security_with_query_prefix_current_prefix_authenticated_hit
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
   shows
     "wp_event
       (checked_staged_security_experiment_with_query_prefix_data_state A i)
@@ -2145,10 +2163,11 @@ lemma checked_staged_security_with_actual_alpha_prefix_composition_candidate_dri
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
     and path_bound:
       "\<And>i. i < rounds \<Longrightarrow>
         wp_event
@@ -2204,10 +2223,11 @@ lemma checked_staged_security_with_data_state_composition_bad_bound_from_trace_i
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
     and path_bound:
       "\<And>i. i < rounds \<Longrightarrow>
         wp_event

@@ -71,6 +71,7 @@ text \<open>
 datatype 'a protocol_hash_input =
     MerkleLeaf 'a
   | MerkleNode 'a 'a
+  | TranscriptAbsorb 'a 'a
   | FiatShamirChallenge 'a
   | TraceFriChallenge nat 'a
   | CompositionFriChallenge nat 'a

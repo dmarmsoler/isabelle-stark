@@ -599,7 +599,7 @@ lemma checked_staged_security_with_query_prefix_single_round_candidate_binding_g
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + Q"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + Q"
 proof -
   have event_eq:
     "checked_staged_security_with_query_prefix_single_round_candidate_binding_gap_at
@@ -630,7 +630,7 @@ lemma checked_staged_security_with_query_prefix_single_round_candidate_binding_g
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_eq:
     "checked_staged_security_with_query_prefix_single_round_candidate_binding_gap_at
@@ -688,7 +688,7 @@ lemma checked_staged_security_with_query_prefix_header_authenticated_candidate_o
       T +
       (staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-       (1::prob) / nnreal (card query_sample_space))"
+       nnreal (query_raw_preimage_card_envelope 1) / nnreal size)"
 proof -
   let ?m =
     "checked_staged_security_experiment_with_query_prefix_data_state A i"
@@ -751,7 +751,7 @@ proof -
     "wp_event ?m ?gap adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_query_prefix_single_round_candidate_binding_gap_bound_from_budgets
         [OF wf controlled i_bound])
@@ -761,7 +761,7 @@ proof -
      T +
       (staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-       (1::prob) / nnreal (card query_sample_space))"
+       nnreal (query_raw_preimage_card_envelope 1) / nnreal size)"
     by (rule add_mono[OF target_bound gap_bound])
   show ?thesis
     by (rule order_trans[OF event_le order_trans[OF union_le sum_bound]])
@@ -1111,7 +1111,7 @@ lemma checked_staged_security_with_query_prefix_single_round_candidate_binding_g
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -1135,7 +1135,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_query_prefix_single_round_candidate_binding_gap_bound_from_budgets
         [OF wf controlled i_bound])

@@ -561,8 +561,8 @@ lemma
           (staged_composition_final data) \<subseteq> B"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event (checked_staged_security_experiment_with_data_state A)
@@ -587,7 +587,7 @@ proof -
         (staged_attacker_query_budget budgets +
           staged_challenge_query_budget) * query_error_bound"
     by (rule staged_phase_query_index_target_error_query_bound
-        [OF raw_bound subset frac])
+        [OF raw_bound subset envelope])
   finally show ?thesis .
 qed
 
@@ -640,8 +640,8 @@ lemma
           (staged_composition_final data) \<subseteq> B"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event (checked_staged_security_experiment_with_data_state A)
@@ -654,7 +654,7 @@ lemma
       checked_staged_security_with_data_state_query_bad_verifier_event_bound)
     (rule
       checked_staged_security_with_data_state_query_bad_bound_from_fixed_query_error_cover
-      [OF wf controlled cover raw_bound subset frac])
+      [OF wf controlled cover raw_bound subset envelope])
 
 lemma staged_security_with_data_query_bad_bound_from_sampling_hit:
   assumes sampling_bound:
@@ -2657,30 +2657,31 @@ lemma staged_dynamic_query_set_subset:
     (staged_composition_final data) \<subseteq> query_sample_space"
   by (rule query_header_supported_union_good_sets_subset)
 
-lemma staged_dynamic_query_set_fraction_bound_if_no_pairwise_merkle_bad:
+lemma staged_dynamic_query_set_envelope_fraction_bound_if_no_pairwise_merkle_bad:
   assumes no_bad:
     "\<not> query_supported_pairwise_merkle_bad
       (verifier_state_from_adversary attacker_state
         (staged_proof_transcript data))"
   shows
     "nnreal
-      (card
-        (query_header_supported_union_good_sets
-          (verifier_state_from_adversary attacker_state
-            (staged_proof_transcript data))
-          query_sampling_success_space
-          (staged_trace_root data)
-          (staged_trace_fri_roots data)
-          (staged_trace_final data)
-          (staged_alphas data)
-          (staged_degree data)
-          (staged_composition_fri_roots data)
-          (staged_composition_final data))) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_union_good_sets
+            (verifier_state_from_adversary attacker_state
+              (staged_proof_transcript data))
+            query_sampling_success_space
+            (staged_trace_root data)
+            (staged_trace_fri_roots data)
+            (staged_trace_final data)
+            (staged_alphas data)
+            (staged_degree data)
+            (staged_composition_fri_roots data)
+            (staged_composition_final data)))) /
+      nnreal size \<le> query_error_bound"
   by (rule
       query_header_supported_union_good_sets_fraction_bound_if_no_global_pairwise_merkle_bad
       [OF no_bad query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space])
+        query_sampling_success_space_envelope_fraction_bound])
 
 lemma staged_dynamic_query_set_target_error_bound_if_no_pairwise_merkle_bad:
   assumes raw_bound: "query_index_raw_preimage_bound"
@@ -2705,7 +2706,7 @@ lemma staged_dynamic_query_set_target_error_bound_if_no_pairwise_merkle_bad:
       nnreal q * query_error_bound"
   by (rule staged_phase_query_index_target_error_query_bound
       [OF raw_bound staged_dynamic_query_set_subset
-        staged_dynamic_query_set_fraction_bound_if_no_pairwise_merkle_bad
+        staged_dynamic_query_set_envelope_fraction_bound_if_no_pairwise_merkle_bad
           [OF no_bad]])
 
 lemma staged_alpha_prefix_receive_bad_vector_position_bound:
@@ -3514,8 +3515,8 @@ lemma staged_query_prefix_receive_bad_index_query_bound_total:
     and absent: "query_index_raw_preimage_absent B s"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le> C"
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le> C"
   shows
     "wp_event
       (staged_query_challenge_prefix_program A i \<bind>
@@ -3545,7 +3546,7 @@ proof -
           (staged_attacker_query_budget budgets +
             staged_challenge_query_budget)) * C"
     by (rule staged_phase_query_index_target_error_query_bound
-        [OF raw_bound subset frac])
+        [OF raw_bound subset envelope])
   finally show ?thesis .
 qed
 
@@ -3583,16 +3584,16 @@ proof -
       composition_fri_roots final"
   have subset: "?B \<subseteq> query_sample_space"
     by (rule query_header_supported_union_good_sets_subset)
-  have frac:
-    "nnreal (card ?B) / nnreal (card query_sample_space) \<le>
+  have envelope:
+    "nnreal (query_raw_preimage_card_envelope (card ?B)) / nnreal size \<le>
       query_error_bound"
     by (rule
         query_header_supported_union_good_sets_fraction_bound_if_no_global_pairwise_merkle_bad
         [OF no_bad query_sampling_success_space_subset
-          query_sampling_success_space_fraction_bound_query_sample_space])
+          query_sampling_success_space_envelope_fraction_bound])
   show ?thesis
     by (rule staged_query_prefix_receive_bad_index_query_bound_total
-        [OF wf controlled i_bound absent raw_bound subset frac])
+        [OF wf controlled i_bound absent raw_bound subset envelope])
 qed
 
 lemma staged_composition_fri_prefix_receive_bad_value_bound_total:

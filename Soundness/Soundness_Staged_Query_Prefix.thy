@@ -765,8 +765,8 @@ lemma checked_staged_security_with_data_state_query_bad_verifier_event_bound_fro
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
-        query_error_bound"
+      "nnreal (query_raw_preimage_card_envelope (card B)) /
+        nnreal size \<le> query_error_bound"
   shows
     "wp_event (checked_staged_security_experiment_with_data_state A)
       (staged_security_with_data_state_verifier_event query_bad)
@@ -850,23 +850,24 @@ lemma staged_dynamic_partial_query_set_fraction_bound_if_unique_candidate:
         {(trace_table, composition_table)}"
   shows
     "nnreal
-      (card
-        (query_header_supported_partial_union_good_sets
-          (verifier_state_from_adversary attacker_state
-            (staged_proof_transcript data))
-          query_sampling_success_space
-          (staged_trace_root data)
-          (staged_trace_fri_roots data)
-          (staged_trace_final data)
-          (staged_alphas data)
-          (staged_degree data)
-          (staged_composition_fri_roots data)
-          (staged_composition_final data))) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_partial_union_good_sets
+            (verifier_state_from_adversary attacker_state
+              (staged_proof_transcript data))
+            query_sampling_success_space
+            (staged_trace_root data)
+            (staged_trace_fri_roots data)
+            (staged_trace_final data)
+            (staged_alphas data)
+            (staged_degree data)
+            (staged_composition_fri_roots data)
+            (staged_composition_final data)))) /
+      nnreal size \<le> query_error_bound"
   by (rule
       query_header_supported_partial_union_good_sets_fraction_bound_if_unique_candidate
       [OF unique query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space])
+        query_sampling_success_space_envelope_fraction_bound])
 
 lemma staged_dynamic_partial_query_set_target_error_bound_if_unique_candidate:
   assumes raw_bound: "query_index_raw_preimage_bound"

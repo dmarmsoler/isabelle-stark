@@ -35,7 +35,7 @@ lemma wp_verifier_after_composition_fri_query_index_list_set_bound:
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) t \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   obtain fr f_fl f_final as dg fl where header_eq:
     "header = (fr, f_fl, f_final, as, dg, fl)"
@@ -96,7 +96,7 @@ proof -
     qed
     also have "... \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
       by (rule wp_ntimes_verifier_query_round_program_fri_index_list_set_bound
           [OF future_query raw_bound subset])
     finally show
@@ -108,7 +108,7 @@ proof -
           query_rounds_index_list_hit s query_idxs rounds out)
         query_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds" .
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds" .
   qed
 qed
 
@@ -121,7 +121,7 @@ lemma wp_verify_monad_query_index_list_set_bound:
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
   unfolding verify_monad_composition_fri_decomposition
 proof (rule wp_event_bind_bound_by_cont)
   show "\<not> (\<exists>query_idxs\<in>Q.
@@ -146,7 +146,7 @@ next
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) t \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_verifier_after_composition_fri_query_index_list_set_bound
         [OF future_t counter_t raw_bound subset])
 qed

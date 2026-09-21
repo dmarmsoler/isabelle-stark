@@ -582,6 +582,65 @@ proof -
   finally show ?thesis .
 qed
 
+lemma partial_query_success_indices_at_envelope_fraction_bound_if_candidate_low_degree:
+  assumes trace_candidate:
+      "partial_trace_table_candidate trace_table trace_openings"
+    and comp_candidate:
+      "partial_composition_table_candidate composition_table
+        composition_openings"
+    and trace_low: "trace_table_low_degree trace_table"
+    and comp_low: "composition_table_low_degree maxDegree composition_table"
+    and not_all:
+      "\<not> all_queries_consistent trace_table composition_table as"
+  shows
+    "nnreal
+      (query_raw_preimage_card_envelope
+        (card
+          (partial_query_success_indices_at trace_openings
+            composition_openings as i))) /
+      nnreal size \<le> query_error_bound"
+proof -
+  have subset:
+    "partial_query_success_indices_at trace_openings composition_openings as i
+      \<subseteq> query_sampling_success_space trace_table composition_table as"
+    by (rule partial_query_success_indices_at_subset_query_sampling_success_space
+        [OF trace_candidate comp_candidate trace_low comp_low not_all])
+  have finite_success:
+    "finite (query_sampling_success_space trace_table composition_table as)"
+    by (rule finite_subset[OF query_sampling_success_space_subset
+          finite_query_sample_space])
+  have card_le:
+    "card
+      (partial_query_success_indices_at trace_openings composition_openings
+        as i) \<le>
+     card (query_sampling_success_space trace_table composition_table as)"
+    by (rule card_mono[OF finite_success subset])
+  have envelope_le:
+    "query_raw_preimage_card_envelope
+      (card
+        (partial_query_success_indices_at trace_openings
+          composition_openings as i)) \<le>
+     query_raw_preimage_card_envelope
+      (card
+        (query_sampling_success_space trace_table composition_table as))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  have "nnreal
+        (query_raw_preimage_card_envelope
+          (card
+            (partial_query_success_indices_at trace_openings
+              composition_openings as i))) /
+      nnreal size \<le>
+      nnreal
+        (query_raw_preimage_card_envelope
+          (card
+            (query_sampling_success_space trace_table composition_table as))) /
+      nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
+  also have "... \<le> query_error_bound"
+    by (rule query_sampling_success_space_envelope_fraction_bound)
+  finally show ?thesis .
+qed
+
 lemma partial_query_round_consistentI:
   assumes i_bound: "i < rounds"
     and idx_sample: "idx \<in> query_sample_space"
@@ -1858,7 +1917,7 @@ lemma checked_staged_security_with_data_state_partial_opening_hit_bound_from_fix
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event (checked_staged_security_experiment_with_data_state A)
@@ -2111,7 +2170,7 @@ lemma checked_staged_security_with_data_state_query_bad_bound_from_partial_openi
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event (checked_staged_security_experiment_with_data_state A)

@@ -254,22 +254,8 @@ locale stark =
     and of_nat_to_nat: "\<forall>x. of_nat (to_nat x) = x"
     and to_nat_range:
       "range to_nat = {0..<size}"
-      \<comment> \<open>
-        Exact-uniformity assumption for the current query sampler, which
-        samples a field element and maps it through \<^term>\<open>to_nat\<close> and
-        modulo reduction.  A direct sampler over the query sample space, or a
-        rejection sampler with a proved distribution, would remove this
-        divisibility condition from the protocol locale.
-      \<close>
     and powers_le_clength: "powers \<le> clength"
     and powers_pos: "0 < powers"
-    and query_sample_space_size_dvd:
-      "clength * scale - Max (set [0..<powers]) * scale dvd size"
-      \<comment> \<open>
-        Exact-uniformity assumption for modulo reduction into the current
-        query sample space.  It is specific to the current field-element
-        encoding based sampler.
-      \<close>
     and shift_nonzero: "shift \<noteq> 0"
     and two_nonzero: "(2::'f) \<noteq> 0"
     and spec_degree_fits:

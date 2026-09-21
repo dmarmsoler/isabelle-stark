@@ -670,10 +670,11 @@ lemma checked_staged_security_with_query_prefix_prefix_candidate_binding_gap_bou
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
   shows
     "wp_event
       (checked_staged_security_experiment_with_query_prefix_data_state A i)
@@ -1108,7 +1109,7 @@ lemma checked_staged_security_with_query_prefix_candidate_binding_gap_bound_from
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -1132,7 +1133,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_query_prefix_header_authenticated_candidate_opening_hit_bound_from_budgets
         [OF wf controlled i_bound])

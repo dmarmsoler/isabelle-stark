@@ -247,8 +247,10 @@ lemma checked_staged_query_prefix_dynamic_index_hit_bound_from_fraction:
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         T prefix prefix_state \<subseteq> query_sample_space \<and>
-        nnreal (card (T prefix prefix_state)) /
-          nnreal (card query_sample_space) \<le> C"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (T prefix prefix_state))) /
+          nnreal size \<le> C"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
       (checked_staged_query_prefix_dynamic_index_hit T)
@@ -303,8 +305,10 @@ lemma checked_staged_security_with_query_prefix_dynamic_index_hit_bound_from_fra
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         T prefix prefix_state \<subseteq> query_sample_space \<and>
-        nnreal (card (T prefix prefix_state)) /
-          nnreal (card query_sample_space) \<le> C"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (T prefix prefix_state))) /
+          nnreal size \<le> C"
   shows
     "wp_event
       (checked_staged_security_experiment_with_query_prefix_data_state A i)
@@ -548,30 +552,37 @@ lemma prob_divide_right_mono:
 
 lemma partial_query_success_indices_at_singleton_fraction_bound:
   "nnreal
-      (card
-        (partial_query_success_indices_at trace_openings composition_openings
-          as i)) /
-    nnreal (card query_sample_space) \<le>
-    (1::prob) / nnreal (card query_sample_space)"
+      (query_raw_preimage_card_envelope
+        (card
+          (partial_query_success_indices_at trace_openings
+            composition_openings as i))) /
+    nnreal size \<le>
+    nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have card_le:
-    "nnreal
+    "card
+      (partial_query_success_indices_at trace_openings composition_openings
+        as i) \<le> 1"
+    using partial_query_success_indices_at_card_le_one by simp
+  have envelope_le:
+    "query_raw_preimage_card_envelope
       (card
         (partial_query_success_indices_at trace_openings composition_openings
-          as i)) \<le> (1::prob)"
-    using partial_query_success_indices_at_card_le_one
-    by simp
+          as i)) \<le>
+     query_raw_preimage_card_envelope 1"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
   show ?thesis
-    by (rule prob_divide_right_mono[OF card_le])
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
 qed
 
 lemma staged_query_prefix_candidate_opening_query_target_from_prefix_singleton_fraction_bound:
   "nnreal
-      (card
-        (staged_query_prefix_candidate_opening_query_target_from_prefix
-          trace_openings composition_openings i prefix prefix_state)) /
-    nnreal (card query_sample_space) \<le>
-    (1::prob) / nnreal (card query_sample_space)"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_opening_query_target_from_prefix
+            trace_openings composition_openings i prefix prefix_state))) /
+    nnreal size \<le>
+    nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
   unfolding staged_query_prefix_candidate_opening_query_target_from_prefix_def
   by (rule partial_query_success_indices_at_singleton_fraction_bound)
 
@@ -588,7 +599,7 @@ lemma checked_staged_query_prefix_candidate_opening_target_from_prefix_singleton
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have hit_bound:
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
@@ -601,7 +612,7 @@ proof -
         (staged_query_prefix_candidate_opening_query_target_from_prefix
           trace_openings composition_openings i))
       adversary_initial_state +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
   proof (rule checked_staged_query_prefix_dynamic_index_hit_bound_by_prehit_and_query_error
       [OF raw_bound])
     fix prefix prefix_state
@@ -615,11 +626,12 @@ proof -
           trace_openings composition_openings i prefix prefix_state \<subseteq>
         query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_candidate_opening_query_target_from_prefix
-            trace_openings composition_openings i prefix prefix_state)) /
-        nnreal (card query_sample_space)
-        \<le> (1::prob) / nnreal (card query_sample_space)"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_opening_query_target_from_prefix
+              trace_openings composition_openings i prefix prefix_state))) /
+        nnreal size
+        \<le> nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
       using
         staged_query_prefix_candidate_opening_query_target_from_prefix_subset
         staged_query_prefix_candidate_opening_query_target_from_prefix_singleton_fraction_bound
@@ -641,10 +653,10 @@ proof -
         (staged_query_prefix_candidate_opening_query_target_from_prefix
           trace_openings composition_openings i))
       adversary_initial_state +
-      (1::prob) / nnreal (card query_sample_space) \<le>
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (intro add_mono prehit_bound order_refl)
   show ?thesis
     by (rule order_trans[OF hit_bound tail])
@@ -664,7 +676,7 @@ lemma checked_staged_security_with_query_prefix_candidate_opening_target_from_pr
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
   by (rule checked_staged_security_with_query_prefix_dynamic_index_hit_bound,
       rule
         checked_staged_query_prefix_candidate_opening_target_from_prefix_singleton_hit_bound
@@ -683,7 +695,7 @@ lemma checked_staged_security_with_query_prefix_candidate_opening_target_from_pr
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -732,7 +744,7 @@ lemma checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bou
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
   unfolding
     checked_staged_security_with_actual_query_prefix_candidate_opening_hit_def
   by (rule
@@ -751,7 +763,7 @@ lemma checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bou
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
   unfolding
     checked_staged_security_with_actual_query_prefix_candidate_opening_hit_def
   by (rule
@@ -775,7 +787,7 @@ lemma checked_staged_security_with_data_state_bound_by_actual_query_prefix_candi
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have projection:
     "wp_event (checked_staged_security_experiment_with_data_state A) E
@@ -810,7 +822,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bound
         [OF raw_bound wf controlled])
@@ -836,7 +848,7 @@ lemma checked_staged_security_with_data_state_bound_by_actual_query_prefix_candi
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -861,7 +873,7 @@ lemma checked_staged_security_with_query_prefix_data_state_bound_by_actual_query
       E adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -881,7 +893,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule
         checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bound
         [OF raw_bound wf controlled])
@@ -904,7 +916,7 @@ lemma checked_staged_security_with_query_prefix_data_state_bound_by_actual_query
       E adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1613,7 +1625,7 @@ lemma checked_staged_security_with_query_prefix_authenticated_opening_hit_bound:
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have actual_bound:
     "wp_event
@@ -1625,7 +1637,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bound
         [OF raw_bound wf controlled])
       (use i_bound in simp)
@@ -1648,7 +1660,7 @@ lemma checked_staged_security_with_query_prefix_authenticated_opening_hit_bound_
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1673,7 +1685,7 @@ lemma checked_staged_security_with_query_prefix_data_state_bound_by_query_prefix
       E adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have event_le:
     "wp_event
@@ -1693,7 +1705,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_query_prefix_authenticated_opening_hit_bound
         [OF raw_bound wf controlled i_bound])
   show ?thesis
@@ -1714,7 +1726,7 @@ lemma checked_staged_security_with_query_prefix_data_state_bound_by_query_prefix
       E adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1810,7 +1822,7 @@ lemma checked_staged_security_with_query_prefix_prefix_authenticated_opening_hit
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have actual_bound:
     "wp_event
@@ -1822,7 +1834,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_actual_query_prefix_candidate_opening_hit_bound
         [OF raw_bound wf controlled])
       (use i_bound in simp)
@@ -1845,7 +1857,7 @@ lemma checked_staged_security_with_query_prefix_prefix_authenticated_opening_hit
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -1952,7 +1964,7 @@ lemma checked_staged_security_with_query_prefix_authenticated_opening_hit_bound_
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space) + path_error"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size + path_error"
 proof -
   have prefix_bound:
     "wp_event
@@ -1962,7 +1974,7 @@ proof -
       adversary_initial_state \<le>
       staged_phase_relation_error size
         (staged_query_search_queries budgets i + 1) +
-      (1::prob) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
     by (rule checked_staged_security_with_query_prefix_prefix_authenticated_opening_hit_bound
         [OF raw_bound wf controlled i_bound])
   show ?thesis
@@ -2027,10 +2039,11 @@ lemma query_bad_with_aligned_partial_candidates_prefix_target_hitE:
         trace_openings composition_openings i)
       (Some (((prefix, prefix_state), raw), raw_state))"
     "nnreal
-      (card
-        (staged_query_prefix_candidate_opening_query_target_from_prefix
-          trace_openings composition_openings i prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_opening_query_target_from_prefix
+            trace_openings composition_openings i prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have hit:
     "checked_staged_query_prefix_dynamic_index_hit
@@ -2046,10 +2059,11 @@ proof -
     using not_all alphas_eq by simp
   have fraction:
     "nnreal
-      (card
-        (staged_query_prefix_candidate_opening_query_target_from_prefix
-          trace_openings composition_openings i prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_opening_query_target_from_prefix
+            trace_openings composition_openings i prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
     by (rule
         staged_query_prefix_candidate_opening_query_target_from_prefix_fraction_bound
         [OF trace_candidate comp_candidate trace_low comp_low not_all_prefix])

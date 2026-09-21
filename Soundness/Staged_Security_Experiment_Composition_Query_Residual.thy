@@ -1333,7 +1333,7 @@ lemma checked_staged_security_with_data_state_composition_bad_bound_from_partial
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
     and residual_bound:
       "wp_event
@@ -1428,7 +1428,7 @@ lemma checked_staged_security_with_data_state_composition_bad_bound_from_partial
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event (checked_staged_security_experiment_with_data_state A)

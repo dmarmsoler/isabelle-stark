@@ -191,7 +191,7 @@ lemma checked_staged_security_with_actual_alpha_prefix_query_partial_opening_hit
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event
@@ -622,7 +622,7 @@ lemma checked_actual_alpha_prefix_branch_subtree_verifier_partial_opening_witnes
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event
@@ -1193,7 +1193,7 @@ lemma checked_actual_alpha_prefix_branch_subtree_verifier_output_hit_bound_from_
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
     and without_bound:
       "wp_event

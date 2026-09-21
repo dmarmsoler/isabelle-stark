@@ -478,6 +478,31 @@ proof -
     by (rule nnreal_nat_divide_right_mono[OF card_le])
 qed
 
+lemma trace_table_agreement_indices_query_envelope_bound:
+  assumes trace_low: "trace_table_low_degree trace_table"
+    and trace'_low: "trace_table_low_degree trace_table'"
+    and distinct: "trace_table \<noteq> trace_table'"
+  shows "nnreal
+      (query_raw_preimage_card_envelope
+        (card (trace_table_agreement_indices trace_table trace_table'))) /
+    nnreal size \<le>
+    nnreal (query_raw_preimage_card_envelope clength) / nnreal size"
+proof -
+  have card_le:
+    "card (trace_table_agreement_indices trace_table trace_table') \<le>
+      clength"
+    using trace_table_agreement_indices_card_bound
+        [OF trace_low trace'_low distinct]
+    by simp
+  have envelope_le:
+    "query_raw_preimage_card_envelope
+        (card (trace_table_agreement_indices trace_table trace_table')) \<le>
+      query_raw_preimage_card_envelope clength"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  show ?thesis
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
+qed
+
 lemma checked_staged_query_prefix_trace_pair_agreement_hit_bound_by_prehit:
   assumes trace_low: "trace_table_low_degree trace_table"
     and trace'_low: "trace_table_low_degree trace_table'"
@@ -491,7 +516,7 @@ lemma checked_staged_query_prefix_trace_pair_agreement_hit_bound_by_prehit:
       (checked_staged_query_prefix_dynamic_index_prehit
         (\<lambda>_ _. trace_table_agreement_indices trace_table trace_table'))
       adversary_initial_state +
-     nnreal clength / nnreal (card query_sample_space)"
+     nnreal (query_raw_preimage_card_envelope clength) / nnreal size"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
     by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
@@ -509,10 +534,11 @@ proof -
       "trace_table_agreement_indices trace_table trace_table'
           \<subseteq> query_sample_space \<and>
        nnreal
-        (card (trace_table_agreement_indices trace_table trace_table')) /
-       nnreal (card query_sample_space) \<le>
-       nnreal clength / nnreal (card query_sample_space)"
-      using trace_table_agreement_indices_fraction_bound
+        (query_raw_preimage_card_envelope
+          (card (trace_table_agreement_indices trace_table trace_table'))) /
+       nnreal size \<le>
+       nnreal (query_raw_preimage_card_envelope clength) / nnreal size"
+      using trace_table_agreement_indices_query_envelope_bound
           [OF trace_low trace'_low distinct]
       unfolding trace_table_agreement_indices_def by auto
   qed

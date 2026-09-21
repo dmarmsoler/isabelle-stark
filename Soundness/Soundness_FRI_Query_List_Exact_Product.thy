@@ -12,8 +12,9 @@ text \<open>
   Exact product accounting for sampled FRI query-index lists.
 
   The preceding layer proves the product theorem in raw field space.  This
-  layer converts raw-list preimages to query-index-list targets using the
-  current exact-uniformity assumptions for the modulo sampler.
+  layer converts raw-list preimages to query-index-list targets using exact
+  floor/remainder fibers for the modulo sampler, together with the resulting
+  maximum-fiber envelope.
 \<close>
 
 context soundness
@@ -596,49 +597,48 @@ proof -
     unfolding t_eq s6_eq by simp
 qed
 
-lemma query_index_raw_singleton_card_uniform:
+lemma query_index_raw_singleton_card_exact:
   assumes b_in: "b \<in> query_sample_space"
   shows "card (query_index_raw_preimage {b}) =
-    size div query_sample_space_size"
+    size div query_sample_space_size +
+      (if b < size mod query_sample_space_size then 1 else 0)"
 proof -
   have subset: "{b} \<subseteq> query_sample_space"
     using b_in by simp
-  have "card (query_index_raw_preimage {b}) =
-      (size div query_sample_space_size) * card {b}"
-    unfolding card_query_index_raw_preimage_eq_nat_preimage
-    apply (rule card_query_index_nat_preimage_uniform_range)
-    apply (rule to_nat_range)
-    using query_sample_space_size_dvd subset
-        unfolding query_sample_space_size_def by simp_all
-  then show ?thesis
+  show ?thesis
+    using card_query_index_raw_preimage_exact[OF subset]
     by simp
 qed
 
-lemma query_index_raw_list_fixed_preimage_card_bound:
+lemma query_index_raw_singleton_card_le_max:
+  assumes b_in: "b \<in> query_sample_space"
+  shows "card (query_index_raw_preimage {b}) \<le>
+    query_raw_preimage_card_envelope 1"
+proof -
+  have subset: "{b} \<subseteq> query_sample_space"
+    using b_in by simp
+  show ?thesis
+    using card_query_index_raw_preimage_le_query_envelope[OF subset]
+    by simp
+qed
+
+lemma query_index_raw_list_fixed_preimage_card_exact:
   assumes len: "length query_idxs = rounds"
-    and subset: "set query_idxs \<subseteq> query_sample_space"
   shows "card {raws.
       length raws = rounds \<and>
-      map (\<lambda>raw. index (to_nat raw)) raws = query_idxs}
-    \<le> (size div query_sample_space_size) ^ rounds"
-  using len subset
+      map (\<lambda>raw. index (to_nat raw)) raws = query_idxs} =
+    prod_list
+      (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)"
+  using len
 proof (induction rounds arbitrary: query_idxs)
   case 0
-  then have "{raws.
-      length raws = 0 \<and>
-      map (\<lambda>raw. index (to_nat raw)) raws = query_idxs} = {[]}"
-    by auto
   then show ?case by simp
 next
   case (Suc n)
   obtain q qs where query_eq: "query_idxs = q # qs"
-    using Suc.prems(1) by (cases query_idxs) auto
+    using Suc.prems by (cases query_idxs) auto
   have len_qs: "length qs = n"
-    using Suc.prems(1) unfolding query_eq by simp
-  have q_in: "q \<in> query_sample_space"
-    using Suc.prems(2) unfolding query_eq by simp
-  have qs_subset: "set qs \<subseteq> query_sample_space"
-    using Suc.prems(2) unfolding query_eq by simp
+    using Suc.prems unfolding query_eq by simp
   let ?A = "{raws.
       length raws = Suc n \<and>
       map (\<lambda>raw. index (to_nat raw)) raws = q # qs}"
@@ -683,27 +683,69 @@ next
     by (rule card_image[OF inj])
   also have "... = card ?B * card ?C"
     using finite_B finite_C by simp
-  also have "... \<le>
-      (size div query_sample_space_size) *
-      (size div query_sample_space_size) ^ n"
-  proof (rule mult_mono)
-    show "card ?B \<le> size div query_sample_space_size"
-      using query_index_raw_singleton_card_uniform[OF q_in] by simp
-    show "card ?C \<le> (size div query_sample_space_size) ^ n"
-      by (rule Suc.IH[OF len_qs qs_subset])
-    show "0 \<le> size div query_sample_space_size" by simp
-    show "0 \<le> card ?C" by simp
-  qed
-  also have "... = (size div query_sample_space_size) ^ Suc n"
+  also have "... =
+      card ?B *
+        prod_list (map (\<lambda>q. card (query_index_raw_preimage {q})) qs)"
+    using Suc.IH[OF len_qs] by simp
+  also have "... =
+      prod_list
+        (map (\<lambda>q. card (query_index_raw_preimage {q})) (q # qs))"
     by simp
   finally show ?case
     unfolding query_eq .
 qed
 
-lemma query_index_raw_list_preimage_card_bound:
+lemma query_index_raw_list_fixed_preimage_card_bound:
+  assumes len: "length query_idxs = rounds"
+    and subset: "set query_idxs \<subseteq> query_sample_space"
+  shows "card {raws.
+      length raws = rounds \<and>
+      map (\<lambda>raw. index (to_nat raw)) raws = query_idxs}
+    \<le> query_raw_preimage_card_envelope 1 ^ rounds"
+proof -
+  have product_le:
+    "prod_list
+        (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)
+      \<le> query_raw_preimage_card_envelope 1 ^ length query_idxs"
+    using subset
+  proof (induction query_idxs)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons q qs)
+    have q_in: "q \<in> query_sample_space"
+      using Cons.prems by simp
+    have qs_subset: "set qs \<subseteq> query_sample_space"
+      using Cons.prems by simp
+    have q_le:
+      "card (query_index_raw_preimage {q}) \<le>
+        query_raw_preimage_card_envelope 1"
+      by (rule query_index_raw_singleton_card_le_max[OF q_in])
+    have tail_le:
+      "prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) qs)
+        \<le> query_raw_preimage_card_envelope 1 ^ length qs"
+      by (rule Cons.IH[OF qs_subset])
+    show ?case
+      using mult_mono[OF q_le tail_le] by simp
+  qed
+  have exact:
+    "card {raws.
+        length raws = rounds \<and>
+        map (\<lambda>raw. index (to_nat raw)) raws = query_idxs} =
+      prod_list
+        (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)"
+    by (rule query_index_raw_list_fixed_preimage_card_exact[OF len])
+  show ?thesis
+    using exact product_le len by simp
+qed
+
+lemma query_index_raw_list_preimage_card_exact:
   assumes subset: "Q \<subseteq> fri_query_index_list_space"
-  shows "card (query_index_raw_list_preimage Q)
-    \<le> card Q * (size div query_sample_space_size) ^ rounds"
+  shows "card (query_index_raw_list_preimage Q) =
+    (\<Sum>query_idxs \<in> Q.
+      prod_list
+        (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs))"
 proof -
   let ?fiber = "\<lambda>query_idxs. {raws.
       length raws = rounds \<and>
@@ -721,14 +763,50 @@ proof -
     then show "finite (?fiber query_idxs)"
       by (auto intro: List.finite_list_length)
   qed
+  have disjoint:
+    "\<forall>query_idxs\<in>Q. \<forall>query_idxs'\<in>Q.
+      query_idxs \<noteq> query_idxs' \<longrightarrow>
+        ?fiber query_idxs \<inter> ?fiber query_idxs' = {}"
+    by auto
   have "card (query_index_raw_list_preimage Q) =
       card (\<Union>query_idxs \<in> Q. ?fiber query_idxs)"
     unfolding preimage_eq ..
-  also have "... \<le> (\<Sum>query_idxs \<in> Q. card (?fiber query_idxs))"
-    using finite_Q by (auto intro: card_UN_le)
+  also have "... = (\<Sum>query_idxs \<in> Q. card (?fiber query_idxs))"
+    by (rule card_UN_disjoint[OF finite_Q]) (use finite_fiber disjoint in auto)
+  also have "... =
+      (\<Sum>query_idxs \<in> Q.
+        prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs))"
+  proof (rule sum.cong)
+    show "Q = Q" by simp
+    fix query_idxs
+    assume query_in: "query_idxs \<in> Q"
+    have len: "length query_idxs = rounds"
+      using query_in subset unfolding fri_query_index_list_space_def by auto
+    show "card (?fiber query_idxs) =
+        prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)"
+      by (rule query_index_raw_list_fixed_preimage_card_exact[OF len])
+  qed
+  finally show ?thesis .
+qed
+
+lemma query_index_raw_list_preimage_card_bound:
+  assumes subset: "Q \<subseteq> fri_query_index_list_space"
+  shows "card (query_index_raw_list_preimage Q)
+    \<le> card Q * query_raw_preimage_card_envelope 1 ^ rounds"
+proof -
+  have finite_Q: "finite Q"
+    using subset by (rule finite_subset) (rule finite_fri_query_index_list_space)
+  have exact:
+    "card (query_index_raw_list_preimage Q) =
+      (\<Sum>query_idxs \<in> Q.
+        prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs))"
+    by (rule query_index_raw_list_preimage_card_exact[OF subset])
   also have "... \<le>
       (\<Sum>query_idxs \<in> Q.
-        (size div query_sample_space_size) ^ rounds)"
+        query_raw_preimage_card_envelope 1 ^ rounds)"
   proof (rule sum_mono)
     fix query_idxs
     assume query_in: "query_idxs \<in> Q"
@@ -736,13 +814,50 @@ proof -
       using query_in subset unfolding fri_query_index_list_space_def by auto
     have entries: "set query_idxs \<subseteq> query_sample_space"
       using query_in subset unfolding fri_query_index_list_space_def by auto
-    show "card (?fiber query_idxs)
-      \<le> (size div query_sample_space_size) ^ rounds"
+    have fixed_bound:
+      "card {raws.
+          length raws = rounds \<and>
+          map (\<lambda>raw. index (to_nat raw)) raws = query_idxs}
+        \<le> query_raw_preimage_card_envelope 1 ^ rounds"
       by (rule query_index_raw_list_fixed_preimage_card_bound[OF len entries])
+    have fixed_exact:
+      "card {raws.
+          length raws = rounds \<and>
+          map (\<lambda>raw. index (to_nat raw)) raws = query_idxs} =
+        prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)"
+      by (rule query_index_raw_list_fixed_preimage_card_exact[OF len])
+    show "prod_list
+        (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)
+      \<le> query_raw_preimage_card_envelope 1 ^ rounds"
+      using fixed_bound fixed_exact by simp
   qed
-  also have "... = card Q * (size div query_sample_space_size) ^ rounds"
+  also have "... =
+      card Q * query_raw_preimage_card_envelope 1 ^ rounds"
     using finite_Q by simp
   finally show ?thesis .
+qed
+
+lemma query_index_raw_list_preimage_probability_exact:
+  assumes subset: "Q \<subseteq> fri_query_index_list_space"
+  shows
+    "nnreal (card (query_index_raw_list_preimage Q)) *
+      (1 / nnreal size) ^ rounds =
+    nnreal
+      (\<Sum>query_idxs \<in> Q.
+        prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs)) /
+      nnreal (size ^ rounds)"
+proof -
+  have card_eq:
+    "card (query_index_raw_list_preimage Q) =
+      (\<Sum>query_idxs \<in> Q.
+        prod_list
+          (map (\<lambda>q. card (query_index_raw_preimage {q})) query_idxs))"
+    by (rule query_index_raw_list_preimage_card_exact[OF subset])
+  show ?thesis
+    using card_eq size_card
+    by transfer (simp add: power_divide)
 qed
 
 lemma query_index_raw_list_preimage_probability_bound:
@@ -751,101 +866,32 @@ lemma query_index_raw_list_preimage_probability_bound:
     "nnreal (card (query_index_raw_list_preimage Q)) *
       (1 / nnreal size) ^ rounds
     \<le> nnreal (card Q) *
-      (1 / nnreal (card query_sample_space)) ^ rounds"
+      (nnreal (query_raw_preimage_card_envelope 1) /
+        nnreal size) ^ rounds"
 proof -
-  let ?d = "size div query_sample_space_size"
   have card_le:
-    "card (query_index_raw_list_preimage Q)
-      \<le> card Q * ?d ^ rounds"
+    "card (query_index_raw_list_preimage Q) \<le>
+      card Q * query_raw_preimage_card_envelope 1 ^ rounds"
     by (rule query_index_raw_list_preimage_card_bound[OF subset])
-  have dvd: "query_sample_space_size dvd size"
-    using query_sample_space_size_dvd
-    unfolding query_sample_space_size_def by simp
-  have size_eq: "size = ?d * query_sample_space_size"
-    using dvd query_sample_space_size_pos by (simp add: dvd_eq_mod_eq_0)
-  have size_pos: "0 < size"
-    using size_card by simp
-  have d_pos: "0 < ?d"
-  proof (cases ?d)
-    case 0
-    then show ?thesis
-      using size_eq size_pos by simp
-  next
-    case (Suc n)
-    then show ?thesis by simp
-  qed
   have le:
     "nnreal (card (query_index_raw_list_preimage Q)) *
       (1 / nnreal size) ^ rounds
-    \<le> nnreal (card Q * ?d ^ rounds) *
+    \<le> nnreal
+        (card Q * query_raw_preimage_card_envelope 1 ^ rounds) *
       (1 / nnreal size) ^ rounds"
     using card_le apply (simp add: mult_right_mono)
     by (metis mult_right_mono of_nat_le_iff of_nat_mult of_nat_power zero_least)
-  have prod_eq:
-    "nnreal (card Q * ?d ^ rounds) *
+  have product_eq:
+    "nnreal
+        (card Q * query_raw_preimage_card_envelope 1 ^ rounds) *
       (1 / nnreal size) ^ rounds =
       nnreal (card Q) *
-      (1 / nnreal (card query_sample_space)) ^ rounds"
-  proof -
-    have card_space_eq:
-      "card query_sample_space = query_sample_space_size"
-      by (rule card_query_sample_space)
-    have base_eq:
-      "nnreal ?d * (1 / nnreal size) =
-        1 / nnreal (card query_sample_space)"
-    proof (rule nn2real_eq_iff[THEN iffD1])
-      have real_base:
-        "real ?d / real size = 1 / real query_sample_space_size"
-      proof -
-        have real_size_eq:
-          "real size = real ?d * real query_sample_space_size"
-          using arg_cong[OF size_eq, of real]
-          by (simp add: of_nat_mult)
-        have "real ?d / real size =
-            real ?d / (real ?d * real query_sample_space_size)"
-          using real_size_eq by simp
-        also have "... = 1 / real query_sample_space_size"
-          using d_pos query_sample_space_size_pos
-          by (simp add: field_simps)
-        finally show ?thesis .
-      qed
-      show "nn2real (nnreal ?d * (1 / nnreal size)) =
-        nn2real (1 / nnreal (card query_sample_space))"
-      proof -
-        have lhs_eq:
-          "nn2real (nnreal ?d * (1 / nnreal size)) =
-            real ?d / real size"
-        proof -
-          have "nn2real (nnreal ?d * (1 / nnreal size)) =
-              real ?d * (1 / real size)"
-            by (simp only: nn2real_mult nn2real_nnreal
-                nn2real_divide nn2real_1)
-          also have "... = real ?d / real size"
-            by (simp add: divide_inverse)
-          finally show ?thesis .
-        qed
-        have rhs_eq:
-          "nn2real (1 / nnreal (card query_sample_space)) =
-            1 / real query_sample_space_size"
-          unfolding card_space_eq
-          by (simp only: nn2real_divide nn2real_1 nn2real_nnreal)
-        show ?thesis
-          using real_base lhs_eq rhs_eq by simp
-      qed
-    qed
-    have
-      "nnreal (card Q * ?d ^ rounds) * (1 / nnreal size) ^ rounds =
-       nnreal (card Q) * (nnreal ?d * (1 / nnreal size)) ^ rounds"
-      by (simp add: of_nat_mult of_nat_power power_mult_distrib
-          ac_simps)
-    also have "... =
-       nnreal (card Q) *
-         (1 / nnreal (card query_sample_space)) ^ rounds"
-      using base_eq by simp
-    finally show ?thesis .
-  qed
+        (nnreal (query_raw_preimage_card_envelope 1) /
+          nnreal size) ^ rounds"
+    using size_card
+    by transfer (simp add: power_divide)
   show ?thesis
-    using le prod_eq by simp
+    using le product_eq by simp
 qed
 
 lemma wp_ntimes_verifier_query_round_program_query_list_path_product_bound:
@@ -858,7 +904,7 @@ lemma wp_ntimes_verifier_query_round_program_query_list_path_product_bound:
         query_rounds_raw_list_path_hit s raws rounds out)
       s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have raw_bound:
     "wp_event
@@ -872,7 +918,7 @@ proof -
     by (rule wp_ntimes_verifier_query_round_program_raw_list_preimage_path_hit_bound)
   also have "... \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule query_index_raw_list_preimage_probability_bound[OF subset])
   finally show ?thesis .
 qed
@@ -902,7 +948,7 @@ lemma wp_verifier_after_composition_fri_raw_list_path_product_bound:
     "wp_event (verifier_after_composition_fri header)
       (verifier_after_composition_fri_raw_list_path_hit s Q) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   obtain fr f_fl f_final as dg fl where header_eq:
     "header = (fr, f_fl, f_final, as, dg, fl)"
@@ -960,7 +1006,7 @@ proof -
     qed
     also have "... \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
       by (rule
           wp_ntimes_verifier_query_round_program_query_list_path_product_bound
           [OF subset])
@@ -972,7 +1018,7 @@ proof -
         (verifier_after_composition_fri_raw_list_path_hit s Q)
         query_state
       \<le> nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds" .
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds" .
       qed
 qed
 
@@ -1291,7 +1337,7 @@ lemma verifier_after_composition_fri_query_index_list_path_fresh_product_bound_a
               Some (((data, attacker_state), result), final_state)))
       prefix_state
       \<le> nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   let ?s =
     "verifier_state_from_adversary attacker_state
@@ -1329,7 +1375,7 @@ proof -
   qed
   also have "... \<le>
     nnreal (card Q) *
-      (1 / nnreal (card query_sample_space)) ^ rounds"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_verifier_after_composition_fri_raw_list_path_product_bound
         [OF subset])
   finally show ?thesis .
@@ -1355,7 +1401,7 @@ lemma verify_monad_query_index_list_path_fresh_product_bound_after_builder:
       (verifier_state_from_adversary attacker_state
         (staged_proof_transcript data))
       \<le> nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   let ?s =
     "verifier_state_from_adversary attacker_state
@@ -1384,7 +1430,7 @@ proof -
                 Some (((data, attacker_state), result), final_state)))
         prefix_state
       \<le> nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
       by (rule
           verifier_after_composition_fri_query_index_list_path_fresh_product_bound_after_prefix
           [OF wf controlled subset builder prefix])
@@ -1400,7 +1446,7 @@ lemma checked_staged_security_with_data_state_query_index_list_path_fresh_produc
       (staged_security_with_data_state_query_index_list_path_fresh Q)
       adversary_initial_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   let ?P = "staged_security_with_data_state_query_index_list_path_fresh Q"
   have none: "\<not> ?P None"
@@ -1421,7 +1467,7 @@ proof -
         (verifier_state_from_adversary attacker_state
           (staged_proof_transcript data))
         \<le> nnreal (card Q) *
-          (1 / nnreal (card query_sample_space)) ^ rounds"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule verify_monad_query_index_list_path_fresh_product_bound_after_builder
         [OF wf controlled subset])
   show ?thesis
@@ -1438,7 +1484,7 @@ lemma checked_staged_security_with_data_state_query_index_list_hit_exact_product
       (staged_security_with_data_query_index_list_set_hit Q)
       adversary_initial_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds +
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds +
       hash_relation_budget_value
         (query_index_raw_list_relation_fiber_bound Q)
         (staged_attacker_query_budget budgets +
@@ -1459,7 +1505,7 @@ lemma checked_staged_security_trace_fri_query_index_list_set_hit_exact_product_b
         (\<lambda>s. trace_fri_query_index_list_set_hit s Q))
       adversary_initial_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds +
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds +
       hash_relation_budget_value
         (query_index_raw_list_relation_fiber_bound Q)
         (staged_attacker_query_budget budgets +
@@ -1480,7 +1526,7 @@ lemma checked_staged_security_composition_fri_query_index_list_set_hit_exact_pro
         (\<lambda>s. composition_fri_query_index_list_set_hit s Q))
       adversary_initial_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds +
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds +
       hash_relation_budget_value
         (query_index_raw_list_relation_fiber_bound Q)
         (staged_attacker_query_budget budgets +
@@ -1502,7 +1548,7 @@ lemma checked_staged_security_trace_fri_query_challenge_pair_set_hit_exact_produ
         (\<lambda>s. trace_fri_query_challenge_pair_set_hit s P))
       adversary_initial_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds +
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds +
       hash_relation_budget_value
         (query_index_raw_list_relation_fiber_bound Q)
         (staged_attacker_query_budget budgets +
@@ -1524,7 +1570,7 @@ lemma checked_staged_security_composition_fri_query_challenge_pair_set_hit_exact
         (\<lambda>s. composition_fri_query_challenge_pair_set_hit s P))
       adversary_initial_state \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds +
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds +
       hash_relation_budget_value
         (query_index_raw_list_relation_fiber_bound Q)
         (staged_attacker_query_budget budgets +

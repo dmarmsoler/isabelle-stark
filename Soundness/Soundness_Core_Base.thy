@@ -75,10 +75,17 @@ definition all_constraint_roots :: "'f list"
 definition query_agreement_bound :: nat
   where "query_agreement_bound = maxDegree + length all_constraint_roots"
 
+definition query_raw_preimage_card_envelope :: "nat \<Rightarrow> nat"
+  where
+    "query_raw_preimage_card_envelope k =
+      (size div query_sample_space_size) * k +
+        min k (size mod query_sample_space_size)"
+
 definition query_error_bound :: prob
   where
     "query_error_bound =
-      nnreal query_agreement_bound / nnreal query_sample_space_size"
+      nnreal (query_raw_preimage_card_envelope query_agreement_bound) /
+        nnreal size"
 
 definition soundness_bound :: prob
   where
@@ -728,9 +735,10 @@ lemma card_query_sample_space[simp]:
   "card query_sample_space = query_sample_space_size"
   unfolding query_sample_space_def by simp
 
-lemma query_error_bound_query_sample_space:
+lemma query_error_bound_query_raw_preimage_card_envelope:
   "query_error_bound =
-    nnreal query_agreement_bound / nnreal (card query_sample_space)"
+    nnreal (query_raw_preimage_card_envelope query_agreement_bound) /
+      nnreal size"
   unfolding query_error_bound_def by simp
 
 lemma query_sample_space_less_domain:

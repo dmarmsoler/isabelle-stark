@@ -1476,10 +1476,11 @@ lemma checked_staged_soundness_from_aligned_transcript_components_and_trace_inde
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
     and path_bound:
       "\<And>i. i < rounds \<Longrightarrow>
         wp_event
@@ -1596,10 +1597,11 @@ lemma checked_staged_soundness_from_aligned_transcript_components_and_trace_inde
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
     and trace_path_bound:
       "\<And>i. i < rounds \<Longrightarrow>
         wp_event
@@ -1864,10 +1866,11 @@ lemma checked_staged_soundness_from_aligned_transcript_components_and_trace_inde
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
     and path_bound:
       "\<And>i. i < rounds \<Longrightarrow>
         wp_event
@@ -2024,10 +2027,11 @@ lemma checked_staged_soundness_from_aligned_transcript_components_and_trace_inde
             (execute (checked_staged_query_prefix_with_state A i)
               adversary_initial_state) \<Longrightarrow>
         nnreal
-          (card
-            (staged_query_prefix_prefix_authenticated_trace_indices prefix
-              prefix_state)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (staged_query_prefix_prefix_authenticated_trace_indices prefix
+                prefix_state))) /
+          nnreal size \<le> query_error_bound"
     and trace_path_bound:
       "\<And>i. i < rounds \<Longrightarrow>
         wp_event

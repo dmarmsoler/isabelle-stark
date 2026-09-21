@@ -803,10 +803,11 @@ lemma staged_query_prefix_prefix_authenticated_opening_target_fraction_bound_if_
         (sqp_alphas prefix)"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_prefix_authenticated_opening_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_prefix_authenticated_opening_target prefix
+            prefix_state))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have subset:
     "staged_query_prefix_prefix_authenticated_opening_target prefix
@@ -826,17 +827,28 @@ proof -
         prefix_state) \<le>
      card (staged_query_prefix_conceptual_query_target prefix prefix_state)"
     by (rule card_mono[OF finite_conceptual subset])
-  have frac_le:
-    "nnreal
+  have envelope_le:
+    "query_raw_preimage_card_envelope
       (card
         (staged_query_prefix_prefix_authenticated_opening_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le>
-     nnreal
+          prefix_state)) \<le>
+     query_raw_preimage_card_envelope
       (card
-        (staged_query_prefix_conceptual_query_target prefix prefix_state)) /
-      nnreal (card query_sample_space)"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
+        (staged_query_prefix_conceptual_query_target prefix prefix_state))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  have frac_le:
+    "nnreal
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_prefix_authenticated_opening_target prefix
+            prefix_state))) /
+      nnreal size \<le>
+     nnreal
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_conceptual_query_target prefix prefix_state))) /
+      nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
   show ?thesis
     by (rule order_trans[OF frac_le
     staged_query_prefix_conceptual_query_target_fraction_bound])
@@ -1320,10 +1332,11 @@ proof -
       by (rule staged_query_prefix_prefix_authenticated_opening_target_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_prefix_authenticated_opening_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_prefix_authenticated_opening_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using ctx
       by (intro
           staged_query_prefix_prefix_authenticated_opening_target_fraction_bound_if_conceptual)
@@ -1332,10 +1345,11 @@ proof -
       "staged_query_prefix_prefix_authenticated_opening_target prefix
           prefix_state \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_prefix_authenticated_opening_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_prefix_authenticated_opening_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   have prehit_bound:

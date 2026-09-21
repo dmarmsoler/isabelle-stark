@@ -1224,6 +1224,12 @@ proof -
   finally show ?thesis .
 qed
 
+text \<open>
+  Diagnostic divisible special case only.  The live sampler route uses the
+  quotient/remainder formulas and envelopes in
+  \<open>Soundness_Query_Index_Modulo_Bounds\<close>.
+\<close>
+
 lemma card_query_index_nat_preimage_uniform_range:
   assumes range_eq: "range to_nat = {0..<size}"
     and dvd: "query_sample_space_size dvd size"

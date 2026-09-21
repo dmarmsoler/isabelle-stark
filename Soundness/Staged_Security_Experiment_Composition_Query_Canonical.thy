@@ -202,7 +202,7 @@ lemma checked_staged_query_prefix_constant_index_hit_bound_from_budgets:
     and i_bound: "i < rounds"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event (checked_staged_query_prefix_receive_with_state A i)
@@ -231,8 +231,10 @@ proof -
             adversary_initial_state)"
     show
       "(\<lambda>_ _. B) prefix prefix_state \<subseteq> query_sample_space \<and>
-       nnreal (card ((\<lambda>_ _. B) prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+       nnreal
+         (query_raw_preimage_card_envelope
+           (card ((\<lambda>_ _. B) prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by simp
   qed
   have prehit_bound:
@@ -266,7 +268,7 @@ lemma checked_staged_security_with_query_prefix_constant_index_hit_bound_from_bu
     and i_bound: "i < rounds"
     and subset: "B \<subseteq> query_sample_space"
     and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event

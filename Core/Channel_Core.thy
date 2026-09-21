@@ -171,6 +171,36 @@ where
       return (hd (PTranscript s))
     }"
 
+definition protocol_absorb_message
+  :: "'a::finite \<Rightarrow> ('a, unit, 'b) protocol_c_monad"
+where
+  "protocol_absorb_message x \<equiv>
+    do {
+      s \<leftarrow> get;
+      h \<leftarrow> (hash (TranscriptAbsorb (PState s) x) ::
+        ('a, 'a, 'b) protocol_c_monad);
+      modify
+        (\<lambda>s. s\<lparr>
+          PState := h,
+          PTranscript := x # PTranscript s\<rparr>)
+    }"
+
+definition protocol_absorb_read
+  :: "('a::finite, 'a, 'b) protocol_c_monad"
+where
+  "protocol_absorb_read \<equiv>
+    do {
+      s \<leftarrow> get;
+      assert (PTranscript s \<noteq> []);
+      h \<leftarrow> (hash (TranscriptAbsorb (PState s) (hd (PTranscript s))) ::
+        ('a, 'a, 'b) protocol_c_monad);
+      modify
+        (\<lambda>s. s\<lparr>
+          PState := h,
+          PTranscript := tl (PTranscript s)\<rparr>);
+      return (hd (PTranscript s))
+    }"
+
 lemma protocol_hash_no_failure:
   "None \<notin> dom (dist (execute (hash x) s))"
   unfolding hash_def apply_hash_def modify_HashMap_def
@@ -195,6 +225,18 @@ lemma protocol_receive_counted_tagged_random_field_element_no_failure:
       (execute
         (protocol_receive_counted_tagged_random_field_element counter bump tag) s))"
   unfolding protocol_receive_counted_tagged_random_field_element_def
+  by (intro no_failure_bindI) (simp_all add: protocol_hash_no_failure)
+
+lemma protocol_absorb_message_no_failure:
+  "None \<notin> dom (dist (execute (protocol_absorb_message x) s))"
+  unfolding protocol_absorb_message_def
+  by (intro no_failure_bindI) (simp_all add: protocol_hash_no_failure)
+
+lemma protocol_absorb_read_no_failure:
+  assumes "PTranscript s \<noteq> []"
+  shows "None \<notin> dom (dist (execute protocol_absorb_read s))"
+  using assms
+  unfolding protocol_absorb_read_def assert_def
   by (intro no_failure_bindI) (simp_all add: protocol_hash_no_failure)
 
 lemma protocol_send_outcome:
@@ -268,6 +310,83 @@ proof -
     unfolding t s2 s1 by simp
   show "PQueryCounter t = PQueryCounter s"
     unfolding t s2 s1 by simp
+qed
+
+lemma protocol_absorb_message_outcome:
+  assumes "Some ((), t) \<in> set_dist (execute (protocol_absorb_message x) s)"
+  obtains h u where
+    "Some (h, u) \<in>
+      set_dist (execute (hash (TranscriptAbsorb (PState s) x)) s)"
+    "t = u\<lparr>PState := h, PTranscript := x # PTranscript u\<rparr>"
+    "PState u = PState s"
+    "PTranscript u = PTranscript s"
+    "s \<le> u"
+proof -
+  from assms obtain h u where hash_out:
+      "Some (h, u) \<in>
+        set_dist (execute (hash (TranscriptAbsorb (PState s) x)) s)"
+    and mod_out:
+      "Some ((), t) \<in>
+        set_dist
+          (execute
+            (modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := x # PTranscript s\<rparr>)) u)"
+    unfolding protocol_absorb_message_def
+    by (auto elim!: protocol_merkle.set_dist_bindE)
+  have t_eq:
+    "t = u\<lparr>PState := h, PTranscript := x # PTranscript u\<rparr>"
+    using mod_out unfolding modify_def
+    by (auto elim!: protocol_merkle.set_dist_bindE)
+  have fields:
+    "PState u = PState s"
+    "PTranscript u = PTranscript s"
+    using protocol_hash_channel_preserves(1,2)[OF hash_out] by simp_all
+  have ext: "s \<le> u"
+    using protocol_merkle.hash_outcome(1)[OF hash_out] .
+  show ?thesis
+    by (rule that[OF hash_out t_eq fields ext])
+qed
+
+lemma protocol_absorb_read_cons_outcome:
+  assumes "Some (y, t) \<in>
+    set_dist (execute protocol_absorb_read (s\<lparr>PTranscript := x # xs\<rparr>))"
+  obtains h u where
+    "y = x"
+    "Some (h, u) \<in>
+      set_dist
+        (execute (hash (TranscriptAbsorb (PState s) x))
+          (s\<lparr>PTranscript := x # xs\<rparr>))"
+    "t = u\<lparr>PState := h, PTranscript := xs\<rparr>"
+    "PState u = PState s"
+    "PTranscript u = x # xs"
+    "s\<lparr>PTranscript := x # xs\<rparr> \<le> u"
+proof -
+  let ?s = "s\<lparr>PTranscript := x # xs\<rparr>"
+  from assms obtain h u where y_eq: "y = x"
+    and hash_out:
+      "Some (h, u) \<in>
+        set_dist (execute (hash (TranscriptAbsorb (PState s) x)) ?s)"
+    and mod_out:
+      "Some ((), t) \<in>
+        set_dist
+          (execute
+            (modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := tl (PTranscript s)\<rparr>)) u)"
+    unfolding protocol_absorb_read_def assert_def
+    by (auto elim!: protocol_merkle.set_dist_bindE)
+  have tr_u: "PTranscript u = x # xs"
+    using protocol_hash_channel_preserves(2)[OF hash_out] by simp
+  have st_u: "PState u = PState s"
+    using protocol_hash_channel_preserves(1)[OF hash_out] by simp
+  have t_eq: "t = u\<lparr>PState := h, PTranscript := xs\<rparr>"
+    using mod_out tr_u unfolding modify_def
+    by (auto elim!: protocol_merkle.set_dist_bindE)
+  have ext: "?s \<le> u"
+    using protocol_merkle.hash_outcome(1)[OF hash_out] .
+  show ?thesis
+    by (rule that[OF y_eq hash_out t_eq st_u tr_u ext])
 qed
 
 lemma protocol_hash_preserves_other_lookup:

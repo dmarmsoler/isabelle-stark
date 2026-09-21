@@ -48,15 +48,16 @@ lemma staged_query_prefix_header_supported_query_target_fraction_bound_if_no_cro
       "\<not> query_supported_partial_pairwise_cross_or_merkle_bad prefix_state"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_header_supported_query_target prefix
-          prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_header_supported_query_target prefix
+            prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_header_supported_query_target_def
   by (rule
       query_header_supported_partial_union_good_sets_fraction_bound_if_no_global_cross_or_merkle_bad
       [OF no_bad query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space])
+        query_sampling_success_space_envelope_fraction_bound])
 
 lemma checked_staged_query_prefix_header_supported_query_target_prehit_bound:
   assumes wf: "staged_budget_wellformed budgets"
@@ -128,10 +129,11 @@ proof -
       "staged_query_prefix_header_supported_query_target prefix prefix_state
         \<subseteq> query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_header_supported_query_target prefix
-            prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_header_supported_query_target prefix
+              prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using
         staged_query_prefix_header_supported_query_target_subset
           [of prefix prefix_state]

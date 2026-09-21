@@ -269,9 +269,6 @@ proof -
     by blast
 qed
 
-lemma square_sequence_query_sample_space_size_dvd:
-  "tlength * 1 - Max (set [0..<tlength]) * 1 dvd 5"
-  by eval
 
 global_interpretation
   stark:
@@ -301,8 +298,7 @@ global_interpretation
           apply (rule gf5_to_nat_range)
           apply simp
         apply simp
-       apply (rule square_sequence_query_sample_space_size_dvd)
-      apply (rule gf5_2_nonzero)
+             apply (rule gf5_2_nonzero)
      apply (rule numeral_2_gf5_nonzero)
     apply (erule square_sequence_spec_degree_fits)
      apply (erule (1) square_sequence_constraint_degree_wellformed)

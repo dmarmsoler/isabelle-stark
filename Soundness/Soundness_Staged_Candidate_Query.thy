@@ -1072,12 +1072,13 @@ lemma staged_query_prefix_candidate_pair_query_target_fraction_bound:
       "\<not> all_queries_consistent trace_table composition_table as"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_candidate_pair_query_target trace_table
-          composition_table as prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_pair_query_target trace_table
+            composition_table as prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_candidate_pair_query_target_def
-  by (rule query_sampling_success_space_fraction_bound_query_sample_space)
+  by (rule query_sampling_success_space_envelope_fraction_bound)
 
 lemma staged_query_prefix_candidate_opening_query_target_fraction_bound:
   assumes trace_candidate:
@@ -1091,12 +1092,14 @@ lemma staged_query_prefix_candidate_opening_query_target_fraction_bound:
       "\<not> all_queries_consistent trace_table composition_table as"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_candidate_opening_query_target trace_openings
-          composition_openings as i prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_opening_query_target trace_openings
+            composition_openings as i prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_candidate_opening_query_target_def
-  by (rule partial_query_success_indices_at_fraction_bound_if_candidate_low_degree
+  by (rule
+      partial_query_success_indices_at_envelope_fraction_bound_if_candidate_low_degree
       [OF trace_candidate comp_candidate trace_low comp_low not_all])
 
 lemma staged_query_prefix_candidate_opening_query_target_from_prefix_fraction_bound:
@@ -1112,12 +1115,14 @@ lemma staged_query_prefix_candidate_opening_query_target_from_prefix_fraction_bo
         (sqp_alphas prefix)"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_candidate_opening_query_target_from_prefix
-          trace_openings composition_openings i prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_opening_query_target_from_prefix
+            trace_openings composition_openings i prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_candidate_opening_query_target_from_prefix_def
-  by (rule partial_query_success_indices_at_fraction_bound_if_candidate_low_degree
+  by (rule
+      partial_query_success_indices_at_envelope_fraction_bound_if_candidate_low_degree
       [OF trace_candidate comp_candidate trace_low comp_low not_all])
 
 lemma staged_query_prefix_candidate_pair_query_target_from_prefix_fraction_bound:
@@ -1128,12 +1133,13 @@ lemma staged_query_prefix_candidate_pair_query_target_from_prefix_fraction_bound
         (sqp_alphas prefix)"
   shows
     "nnreal
-      (card
-        (staged_query_prefix_candidate_pair_query_target_from_prefix
-          trace_table composition_table prefix prefix_state)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (staged_query_prefix_candidate_pair_query_target_from_prefix
+            trace_table composition_table prefix prefix_state))) /
+      nnreal size \<le> query_error_bound"
   unfolding staged_query_prefix_candidate_pair_query_target_from_prefix_def
-  by (rule query_sampling_success_space_fraction_bound_query_sample_space)
+  by (rule query_sampling_success_space_envelope_fraction_bound)
 
 lemma checked_staged_query_prefix_candidate_opening_target_prehit_bound:
   assumes wf: "staged_budget_wellformed budgets"
@@ -1213,10 +1219,11 @@ proof -
       by (rule staged_query_prefix_candidate_opening_query_target_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_candidate_opening_query_target
-            trace_openings composition_openings as i prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_opening_query_target
+              trace_openings composition_openings as i prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule staged_query_prefix_candidate_opening_query_target_fraction_bound
           [OF trace_candidate comp_candidate trace_low comp_low not_all])
     show
@@ -1224,10 +1231,11 @@ proof -
           composition_openings as i prefix prefix_state \<subseteq>
         query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_candidate_opening_query_target
-            trace_openings composition_openings as i prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_opening_query_target
+              trace_openings composition_openings as i prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   have prehit_bound:
@@ -1337,10 +1345,11 @@ proof -
       by (rule staged_query_prefix_candidate_opening_query_target_from_prefix_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_candidate_opening_query_target_from_prefix
-            trace_openings composition_openings i prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_opening_query_target_from_prefix
+              trace_openings composition_openings i prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule
           staged_query_prefix_candidate_opening_query_target_from_prefix_fraction_bound
           [OF trace_candidate comp_candidate trace_low comp_low not_all[OF support]])
@@ -1349,10 +1358,11 @@ proof -
           trace_openings composition_openings i prefix prefix_state \<subseteq>
         query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_candidate_opening_query_target_from_prefix
-            trace_openings composition_openings i prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_opening_query_target_from_prefix
+              trace_openings composition_openings i prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   have prehit_bound:
@@ -1452,10 +1462,11 @@ proof -
       by (rule staged_query_prefix_candidate_pair_query_target_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_candidate_pair_query_target trace_table
-            composition_table as prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_pair_query_target trace_table
+              composition_table as prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule staged_query_prefix_candidate_pair_query_target_fraction_bound
           [OF trace_low comp_low not_all])
     show
@@ -1463,10 +1474,11 @@ proof -
           composition_table as prefix prefix_state \<subseteq>
         query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_candidate_pair_query_target trace_table
-            composition_table as prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_pair_query_target trace_table
+              composition_table as prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   have prehit_bound:
@@ -1571,10 +1583,11 @@ proof -
       by (rule staged_query_prefix_candidate_pair_query_target_from_prefix_subset)
     have frac:
       "nnreal
-        (card
-          (staged_query_prefix_candidate_pair_query_target_from_prefix
-            trace_table composition_table prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_pair_query_target_from_prefix
+              trace_table composition_table prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       by (rule
           staged_query_prefix_candidate_pair_query_target_from_prefix_fraction_bound)
         (use trace_low comp_low not_all[OF support] in simp_all)
@@ -1583,10 +1596,11 @@ proof -
           trace_table composition_table prefix prefix_state \<subseteq>
         query_sample_space \<and>
        nnreal
-        (card
-          (staged_query_prefix_candidate_pair_query_target_from_prefix
-            trace_table composition_table prefix prefix_state)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (staged_query_prefix_candidate_pair_query_target_from_prefix
+              trace_table composition_table prefix prefix_state))) /
+        nnreal size \<le> query_error_bound"
       using subset frac by blast
   qed
   have prehit_bound:

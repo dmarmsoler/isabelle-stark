@@ -1187,14 +1187,17 @@ lemma query_header_supported_partial_union_good_sets_fraction_bound_if_unique_ca
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bound:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_supported_partial_union_good_sets s good_sets fr
-          f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_partial_union_good_sets s good_sets fr
+            f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
 proof -
   from unique obtain trace_table composition_table where candidates:
     "query_header_supported_partial_table_candidates s fr f_fri_roots f_final
@@ -1215,14 +1218,25 @@ proof -
         f_fri_roots f_final as dg composition_fri_roots final) \<le>
       card (good_sets trace_table composition_table as)"
     by (rule card_mono[OF finite_good union_subset])
-  have "nnreal
+  have envelope_le:
+    "query_raw_preimage_card_envelope
         (card
           (query_header_supported_partial_union_good_sets s good_sets fr
-            f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le>
-      nnreal (card (good_sets trace_table composition_table as)) /
-        nnreal (card query_sample_space)"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
+            f_fri_roots f_final as dg composition_fri_roots final)) \<le>
+      query_raw_preimage_card_envelope
+        (card (good_sets trace_table composition_table as))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  have "nnreal
+        (query_raw_preimage_card_envelope
+          (card
+            (query_header_supported_partial_union_good_sets s good_sets fr
+              f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le>
+      nnreal
+        (query_raw_preimage_card_envelope
+          (card (good_sets trace_table composition_table as))) /
+        nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
   also have "... \<le> query_error_bound"
     by (rule bound)
   finally show ?thesis .
@@ -1374,10 +1388,11 @@ lemma wp_query_index_round_set_hit_bound_via_supported_partial_union_or_collisio
     and union_bound:
       "\<And>fr f_fri_roots f_final as dg composition_fri_roots final.
         nnreal
-          (card
-            (query_header_supported_partial_union_good_sets s good_sets fr
-              f_fri_roots f_final as dg composition_fri_roots final)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (query_header_supported_partial_union_good_sets s good_sets fr
+                f_fri_roots f_final as dg composition_fri_roots final))) /
+          nnreal size \<le> query_error_bound"
     and collision_bound:
       "wp_event verify_monad (hash_map_output_collision_bad s) s \<le> H"
   shows
@@ -1434,8 +1449,10 @@ lemma wp_query_index_round_set_hit_bound_if_supported_partial_header_candidate_u
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bounded:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
     and collision_bound:
       "wp_event verify_monad (hash_map_output_collision_bad s) s \<le> H"
   shows
@@ -1445,10 +1462,11 @@ proof -
   have union_bound:
     "\<And>fr f_fri_roots f_final as dg composition_fri_roots final.
       nnreal
-        (card
-          (query_header_supported_partial_union_good_sets s good_sets fr
-            f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (query_header_supported_partial_union_good_sets s good_sets fr
+              f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
     by (rule
         query_header_supported_partial_union_good_sets_fraction_bound_if_unique_candidate
         [OF unique subset bounded])
@@ -1473,8 +1491,10 @@ lemma wp_query_index_set_hit_bound_if_supported_partial_header_candidate_unique_
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bounded:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
     and collision_bound:
       "wp_event verify_monad (hash_map_output_collision_bad s) s \<le> H"
   shows
@@ -1510,7 +1530,7 @@ lemma wp_query_sampling_success_set_hit_bound_if_supported_partial_header_candid
   by (rule
       wp_query_index_set_hit_bound_if_supported_partial_header_candidate_unique_or_collision
       [OF future raw_bound unique query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space
+        query_sampling_success_space_envelope_fraction_bound
         collision_bound])
 
 lemma composition_fri_supported_root_composition_table_candidate_state_hash_extends:

@@ -7,6 +7,7 @@
 theory Soundness_Bad_Events
   imports
     Soundness_Execution
+    Soundness_Query_Index_Modulo_Bounds
 begin
 
 context soundness
@@ -1118,14 +1119,17 @@ lemma query_header_supported_union_good_sets_fraction_bound_if_unique_candidate:
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bound:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_supported_union_good_sets s good_sets fr f_fri_roots
-          f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_union_good_sets s good_sets fr f_fri_roots
+            f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
 proof -
   from unique obtain trace_table composition_table where candidates:
     "query_header_supported_table_candidates s fr f_fri_roots f_final as dg
@@ -1146,14 +1150,25 @@ proof -
         f_final as dg composition_fri_roots final) \<le>
       card (good_sets trace_table composition_table as)"
     by (rule card_mono[OF finite_good union_subset])
-  have "nnreal
+  have envelope_le:
+    "query_raw_preimage_card_envelope
         (card
           (query_header_supported_union_good_sets s good_sets fr f_fri_roots
-            f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le>
-      nnreal (card (good_sets trace_table composition_table as)) /
-        nnreal (card query_sample_space)"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
+            f_final as dg composition_fri_roots final)) \<le>
+      query_raw_preimage_card_envelope
+        (card (good_sets trace_table composition_table as))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  have "nnreal
+        (query_raw_preimage_card_envelope
+          (card
+            (query_header_supported_union_good_sets s good_sets fr f_fri_roots
+              f_final as dg composition_fri_roots final))) /
+      nnreal size \<le>
+      nnreal
+        (query_raw_preimage_card_envelope
+          (card (good_sets trace_table composition_table as))) /
+        nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
   also have "... \<le> query_error_bound"
     by (rule bound)
   finally show ?thesis .
@@ -1168,14 +1183,17 @@ lemma query_header_supported_union_good_sets_fraction_bound_if_no_pairwise_merkl
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bound:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_supported_union_good_sets s good_sets fr f_fri_roots
-          f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_union_good_sets s good_sets fr f_fri_roots
+            f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have unique:
     "\<exists>trace_table composition_table.
@@ -1196,14 +1214,17 @@ lemma query_header_supported_union_good_sets_fraction_bound_if_no_global_pairwis
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bound:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_supported_union_good_sets s good_sets fr f_fri_roots
-          f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_union_good_sets s good_sets fr f_fri_roots
+            f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
 proof -
   have no_header_bad:
     "\<not> query_header_supported_pairwise_merkle_bad s fr f_fri_roots
@@ -1255,14 +1276,17 @@ lemma query_header_committed_union_good_sets_fraction_bound_if_unique_candidate:
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bound:
       "\<And>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   shows
     "nnreal
-      (card
-        (query_header_committed_union_good_sets s good_sets fr as
-          composition_fri_roots)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_committed_union_good_sets s good_sets fr as
+            composition_fri_roots))) /
+      nnreal size \<le> query_error_bound"
 proof -
   from unique obtain trace_table composition_table where candidates:
     "query_header_committed_table_candidates s fr composition_fri_roots
@@ -1281,14 +1305,25 @@ proof -
         composition_fri_roots) \<le>
       card (good_sets trace_table composition_table as)"
     by (rule card_mono[OF finite_good union_subset])
-  have "nnreal
+  have envelope_le:
+    "query_raw_preimage_card_envelope
         (card
           (query_header_committed_union_good_sets s good_sets fr as
-            composition_fri_roots)) /
-      nnreal (card query_sample_space) \<le>
-      nnreal (card (good_sets trace_table composition_table as)) /
-        nnreal (card query_sample_space)"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
+            composition_fri_roots)) \<le>
+      query_raw_preimage_card_envelope
+        (card (good_sets trace_table composition_table as))"
+    by (rule query_raw_preimage_card_envelope_mono[OF card_le])
+  have "nnreal
+        (query_raw_preimage_card_envelope
+          (card
+            (query_header_committed_union_good_sets s good_sets fr as
+              composition_fri_roots))) /
+      nnreal size \<le>
+      nnreal
+        (query_raw_preimage_card_envelope
+          (card (good_sets trace_table composition_table as))) /
+        nnreal size"
+    by (rule nnreal_nat_divide_right_mono[OF envelope_le])
   also have "... \<le> query_error_bound"
     by (rule bound)
   finally show ?thesis .
@@ -1607,12 +1642,8 @@ proof (cases
     unfolding space_eq
     by (rule query_agreement_indices_card_bound)
       (use True in auto)
-  have "nnreal (card (query_sampling_success_space trace_table composition_table as)) /
-      nnreal query_sample_space_size \<le>
-      nnreal query_agreement_bound / nnreal query_sample_space_size"
-    by (rule nnreal_nat_divide_right_mono[OF card_le])
-  then show ?thesis
-    unfolding query_error_bound_def .
+  show ?thesis
+    by (rule query_uniform_fraction_le_query_error_bound[OF card_le])
 next
   case False
   then have space_eq:
@@ -1621,6 +1652,42 @@ next
   show ?thesis
     unfolding space_eq by simp
 qed
+
+lemma query_sampling_success_space_envelope_fraction_bound:
+  shows
+    "nnreal
+      (query_raw_preimage_card_envelope
+        (card
+          (query_sampling_success_space trace_table composition_table as))) /
+      nnreal size \<le> query_error_bound"
+proof (cases
+    "trace_table_low_degree trace_table \<and>
+      composition_table_low_degree maxDegree composition_table \<and>
+      \<not> all_queries_consistent trace_table composition_table as")
+  case True
+  then have space_eq:
+    "query_sampling_success_space trace_table composition_table as =
+      query_agreement_indices trace_table composition_table as"
+    unfolding query_sampling_success_space_def by simp
+  have card_le:
+    "card (query_sampling_success_space trace_table composition_table as) \<le>
+      query_agreement_bound"
+    unfolding space_eq
+    by (rule query_agreement_indices_card_bound)
+      (use True in auto)
+  show ?thesis
+    by (rule
+        query_raw_preimage_card_envelope_probability_le_query_error_bound[
+          OF card_le])
+next
+  case False
+  then have space_eq:
+    "query_sampling_success_space trace_table composition_table as = {}"
+    unfolding query_sampling_success_space_def by auto
+  show ?thesis
+    unfolding space_eq query_raw_preimage_card_envelope_def by simp
+qed
+
 
 lemma query_sampling_success_space_fraction_bound_query_sample_space:
   shows
@@ -1633,14 +1700,15 @@ lemma query_sampling_success_header_supported_union_fraction_bound_if_no_global_
   assumes no_bad: "\<not> query_supported_pairwise_merkle_bad s"
   shows
     "nnreal
-      (card
-        (query_header_supported_union_good_sets s query_sampling_success_space
-          fr f_fri_roots f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+      (query_raw_preimage_card_envelope
+        (card
+          (query_header_supported_union_good_sets s query_sampling_success_space
+            fr f_fri_roots f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
   by (rule
       query_header_supported_union_good_sets_fraction_bound_if_no_global_pairwise_merkle_bad
       [OF no_bad query_sampling_success_space_subset
-        query_sampling_success_space_fraction_bound_query_sample_space])
+        query_sampling_success_space_envelope_fraction_bound])
 
 definition query_index_raw_preimage_bound :: bool
   where
@@ -1648,73 +1716,25 @@ definition query_index_raw_preimage_bound :: bool
       (\<forall>B.
         B \<subseteq> query_sample_space \<longrightarrow>
         nnreal (card (query_index_raw_preimage B)) / nnreal size \<le>
-          nnreal (card B) / nnreal (card query_sample_space))"
-
-lemma query_index_raw_preimage_bound_if_uniform_range:
-  assumes range_eq: "range to_nat = {0..<size}"
-    and dvd: "query_sample_space_size dvd size"
-  shows "query_index_raw_preimage_bound"
-  unfolding query_index_raw_preimage_bound_def
-proof (intro allI impI)
-  fix B :: "nat set"
-  assume subset: "B \<subseteq> query_sample_space"
-  let ?q = query_sample_space_size
-  have card_raw:
-    "card (query_index_raw_preimage B) =
-      (size div ?q) * card B"
-    unfolding card_query_index_raw_preimage_eq_nat_preimage
-    by (rule card_query_index_nat_preimage_uniform_range
-        [OF range_eq dvd subset])
-  have size_eq: "size = (size div ?q) * ?q"
-    using dvd query_sample_space_size_pos by (simp add: dvd_eq_mod_eq_0)
-  have size_pos: "0 < size"
-    using size_card by simp
-  have div_pos: "0 < size div ?q"
-  proof (cases "size div ?q")
-    case 0
-    then show ?thesis
-      using size_eq size_pos by simp
-  next
-    case (Suc n)
-    then show ?thesis
-      by simp
-  qed
-  have frac_eq:
-    "nnreal ((size div ?q) * card B) / nnreal ((size div ?q) * ?q) =
-      nnreal (card B) / nnreal ?q"
-    using div_pos query_sample_space_size_pos
-    by transfer (simp add: field_simps)
-  have lhs_eq:
-    "nnreal (card (query_index_raw_preimage B)) / nnreal size =
-      nnreal ((size div ?q) * card B) / nnreal ((size div ?q) * ?q)"
-    using card_raw size_eq by simp
-  show
-    "nnreal (card (query_index_raw_preimage B)) / nnreal size \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
-    using lhs_eq frac_eq by simp
-qed
+          nnreal (query_raw_preimage_card_envelope (card B)) /
+            nnreal size)"
 
 lemma query_index_raw_preimage_bound_from_sampler_wellformed:
   "query_index_raw_preimage_bound"
-proof (rule query_index_raw_preimage_bound_if_uniform_range)
-  show "range to_nat = {0..<size}"
-    by (rule to_nat_range)
-  show "query_sample_space_size dvd size"
-    using query_sample_space_size_dvd
-    unfolding query_sample_space_size_def by simp
-qed
+  unfolding query_index_raw_preimage_bound_def
+  using query_index_raw_preimage_probability_le_envelope by blast
 
 lemma query_index_raw_preimage_singleton_bound:
   assumes raw_bound: "query_index_raw_preimage_bound"
     and b_in: "b \<in> query_sample_space"
   shows
     "nnreal (card (query_index_raw_preimage {b})) / nnreal size \<le>
-      1 / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope 1) / nnreal size"
 proof -
   have subset: "{b} \<subseteq> query_sample_space"
     using b_in by simp
   have "nnreal (card (query_index_raw_preimage {b})) / nnreal size \<le>
-      nnreal (card {b}) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card {b})) / nnreal size"
     using raw_bound subset unfolding query_index_raw_preimage_bound_def
     by blast
   then show ?thesis
@@ -1724,18 +1744,18 @@ qed
 lemma query_index_raw_preimage_fraction_bound:
   assumes raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "nnreal (card (query_index_raw_preimage B)) / nnreal size \<le>
       query_error_bound"
 proof -
   have "nnreal (card (query_index_raw_preimage B)) / nnreal size \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
     using raw_bound subset unfolding query_index_raw_preimage_bound_def by blast
   also have "... \<le> query_error_bound"
-    by (rule frac)
+    by (rule envelope)
   finally show ?thesis .
 qed
 
@@ -1747,7 +1767,7 @@ lemma wp_receive_query_index_challenge_fresh_index_set_raw_bound:
     "wp_event receive_query_index_challenge
       (\<lambda>out. case out of None \<Rightarrow> False
         | Some (raw, _) \<Rightarrow> index (to_nat raw) \<in> B) s \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
 proof -
   have fresh:
     "fmlookup (HashMap s)
@@ -1761,7 +1781,7 @@ proof -
     by (rule wp_receive_query_index_challenge_fresh_index_set[OF fresh])
   have raw:
     "nnreal (card (query_index_raw_preimage B)) / nnreal size \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
     using raw_bound subset
     unfolding query_index_raw_preimage_bound_def by blast
   show ?thesis
@@ -1772,8 +1792,8 @@ lemma wp_receive_query_index_challenge_fresh_index_set_query_error_bound:
   assumes future: "query_future_fresh s"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event receive_query_index_challenge
@@ -1782,7 +1802,7 @@ lemma wp_receive_query_index_challenge_fresh_index_set_query_error_bound:
       query_error_bound"
   by (rule order_trans
       [OF wp_receive_query_index_challenge_fresh_index_set_raw_bound
-        [OF future raw_bound subset] frac])
+        [OF future raw_bound subset] envelope])
 
 lemma wp_verifier_query_round_program_index_set_bound:
   assumes future: "query_future_fresh s"
@@ -1792,14 +1812,14 @@ lemma wp_verifier_query_round_program_index_set_bound:
     "wp_event
       (verifier_query_round_program fr f_fl f_final as fl final)
       (query_round_index_set_hit s B) s \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
 proof -
   let ?P =
     "\<lambda>out. case out of None \<Rightarrow> False
       | Some (raw, _) \<Rightarrow> index (to_nat raw) \<in> B"
   have head_bound:
     "wp_event receive_query_index_challenge ?P s \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
     by (rule wp_receive_query_index_challenge_fresh_index_set_raw_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -1854,8 +1874,8 @@ lemma wp_verifier_query_round_program_index_set_query_error_bound:
   assumes future: "query_future_fresh s"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event
@@ -1863,7 +1883,7 @@ lemma wp_verifier_query_round_program_index_set_query_error_bound:
       (query_round_index_set_hit s B) s \<le> query_error_bound"
   by (rule order_trans
       [OF wp_verifier_query_round_program_index_set_bound
-        [OF future raw_bound subset] frac])
+        [OF future raw_bound subset] envelope])
 
 lemma wp_verifier_query_round_program_any_index_set_bound:
   assumes future: "query_future_fresh s"
@@ -1873,14 +1893,14 @@ lemma wp_verifier_query_round_program_any_index_set_bound:
     "wp_event
       (verifier_query_round_program fr f_fl f_final as fl final)
       (query_round_any_index_set_hit s B) s \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
 proof -
   let ?P =
     "\<lambda>out. case out of None \<Rightarrow> False
       | Some (raw, _) \<Rightarrow> index (to_nat raw) \<in> B"
   have head_bound:
     "wp_event receive_query_index_challenge ?P s \<le>
-      nnreal (card B) / nnreal (card query_sample_space)"
+      nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
     by (rule wp_receive_query_index_challenge_fresh_index_set_raw_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -1960,7 +1980,7 @@ lemma wp_ntimes_verifier_query_round_program_any_index_set_bound:
       (ntimes (verifier_query_round_program fr f_fl f_final as fl final) n)
       (query_rounds_any_index_set_hit s B n) s \<le>
       nnreal n *
-        (nnreal (card B) / nnreal (card query_sample_space))"
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
   using future
 proof (induction n arbitrary: s)
   case 0
@@ -1970,7 +1990,7 @@ proof (induction n arbitrary: s)
 next
   case (Suc n)
   let ?prog = "verifier_query_round_program fr f_fl f_final as fl final"
-  let ?C = "nnreal (card B) / nnreal (card query_sample_space)"
+  let ?C = "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size"
   let ?Q = "query_rounds_any_index_set_hit s B (Suc n)"
   let ?Head =
     "\<lambda>out :: (unit list \<times> ('f, 'a) protocol_channel_scheme) option.
@@ -2160,8 +2180,8 @@ lemma wp_ntimes_verifier_query_round_program_any_index_set_query_error_bound:
   assumes future: "query_future_fresh s"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event
@@ -2174,14 +2194,14 @@ proof -
       (ntimes (verifier_query_round_program fr f_fl f_final as fl final) n)
       (query_rounds_any_index_set_hit s B n) s \<le>
       nnreal n *
-        (nnreal (card B) / nnreal (card query_sample_space))"
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
     by (rule wp_ntimes_verifier_query_round_program_any_index_set_bound
         [OF future raw_bound subset])
   have mono:
     "nnreal n *
-        (nnreal (card B) / nnreal (card query_sample_space)) \<le>
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size) \<le>
       nnreal n * query_error_bound"
-    by (rule mult_left_mono) (use frac in simp_all)
+    by (rule mult_left_mono) (use envelope in simp_all)
   show ?thesis
     by (rule order_trans[OF base mono])
 qed
@@ -2195,7 +2215,7 @@ lemma wp_verifier_after_composition_fri_query_rounds_any_index_set_bound:
     "wp_event (verifier_after_composition_fri header)
       (query_rounds_any_index_set_hit s B rounds) t \<le>
       nnreal rounds *
-        (nnreal (card B) / nnreal (card query_sample_space))"
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
 proof -
   obtain fr f_fl f_final as dg fl where header_eq:
     "header = (fr, f_fl, f_final, as, dg, fl)"
@@ -2242,7 +2262,7 @@ proof -
       by (rule wp_event_mono) (rule event_imp)
     also have "... \<le>
         nnreal rounds *
-          (nnreal (card B) / nnreal (card query_sample_space))"
+          (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
       by (rule wp_ntimes_verifier_query_round_program_any_index_set_bound
           [OF future_query raw_bound subset])
     finally show
@@ -2252,7 +2272,7 @@ proof -
           rounds)
         (query_rounds_any_index_set_hit s B rounds) query_state \<le>
       nnreal rounds *
-        (nnreal (card B) / nnreal (card query_sample_space))" .
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)" .
   qed
 qed
 
@@ -2263,7 +2283,7 @@ lemma wp_verify_monad_query_rounds_any_index_set_bound:
   shows
     "wp_event verify_monad (query_rounds_any_index_set_hit s B rounds) s \<le>
       nnreal rounds *
-        (nnreal (card B) / nnreal (card query_sample_space))"
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
   unfolding verify_monad_composition_fri_decomposition
 proof (rule wp_event_bind_bound_by_cont)
   show "\<not> query_rounds_any_index_set_hit s B rounds None"
@@ -2286,7 +2306,7 @@ next
     "wp_event (verifier_after_composition_fri header)
       (query_rounds_any_index_set_hit s B rounds) t \<le>
       nnreal rounds *
-        (nnreal (card B) / nnreal (card query_sample_space))"
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
     by (rule
         wp_verifier_after_composition_fri_query_rounds_any_index_set_bound
         [OF future_t counter_t raw_bound subset])
@@ -2296,8 +2316,8 @@ lemma wp_verify_monad_query_rounds_any_index_set_query_error_bound:
   assumes future: "query_future_fresh s"
     and raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event verify_monad (query_rounds_any_index_set_hit s B rounds) s \<le>
@@ -2306,14 +2326,14 @@ proof -
   have base:
     "wp_event verify_monad (query_rounds_any_index_set_hit s B rounds) s \<le>
       nnreal rounds *
-        (nnreal (card B) / nnreal (card query_sample_space))"
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size)"
     by (rule wp_verify_monad_query_rounds_any_index_set_bound
         [OF future raw_bound subset])
   have mono:
     "nnreal rounds *
-        (nnreal (card B) / nnreal (card query_sample_space)) \<le>
+        (nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size) \<le>
       nnreal rounds * query_error_bound"
-    by (rule mult_left_mono) (use frac in simp_all)
+    by (rule mult_left_mono) (use envelope in simp_all)
   show ?thesis
     by (rule order_trans[OF base mono])
 qed
@@ -2329,9 +2349,10 @@ lemma wp_verify_monad_query_header_rounds_any_index_set_bound:
     and bound:
       "\<And>fr f_fri_roots f_final as dg composition_fri_roots final.
         nnreal
-          (card
-            (B fr f_fri_roots f_final as dg composition_fri_roots final)) /
-          nnreal (card query_sample_space) \<le> C"
+          (query_raw_preimage_card_envelope
+            (card
+              (B fr f_fri_roots f_final as dg composition_fri_roots final))) /
+          nnreal size \<le> C"
   shows
     "wp_event verify_monad (query_header_rounds_any_index_set_hit s B) s \<le>
       nnreal rounds * C"
@@ -2407,7 +2428,7 @@ next
         (query_rounds_any_index_set_hit query_state ?B rounds)
         query_state \<le>
         nnreal rounds *
-          (nnreal (card ?B) / nnreal (card query_sample_space))"
+          (nnreal (query_raw_preimage_card_envelope (card ?B)) / nnreal size)"
       by (rule wp_ntimes_verifier_query_round_program_any_index_set_bound
           [OF future_query raw_bound subset])
     have base_C:
@@ -2416,7 +2437,7 @@ next
         query_state \<le> nnreal rounds * C"
     proof -
       have "nnreal rounds *
-          (nnreal (card ?B) / nnreal (card query_sample_space)) \<le>
+          (nnreal (query_raw_preimage_card_envelope (card ?B)) / nnreal size) \<le>
         nnreal rounds * C"
         by (rule mult_left_mono) (use bound in simp_all)
       then show ?thesis
@@ -2479,10 +2500,11 @@ lemma wp_query_index_round_set_hit_bound_via_supported_header_union:
     and union_bound:
       "\<And>fr f_fri_roots f_final as dg composition_fri_roots final.
         nnreal
-          (card
-            (query_header_supported_union_good_sets s good_sets fr
-              f_fri_roots f_final as dg composition_fri_roots final)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+          (query_raw_preimage_card_envelope
+            (card
+              (query_header_supported_union_good_sets s good_sets fr
+                f_fri_roots f_final as dg composition_fri_roots final))) /
+          nnreal size \<le> query_error_bound"
   shows
     "wp_event verify_monad (query_index_round_set_hit s good_sets) s \<le>
       nnreal rounds * query_error_bound"
@@ -2510,8 +2532,8 @@ qed
 lemma verifier_initial_query_rounds_any_index_set_error_bound:
   assumes raw_bound: "query_index_raw_preimage_bound"
     and subset: "B \<subseteq> query_sample_space"
-    and frac:
-      "nnreal (card B) / nnreal (card query_sample_space) \<le>
+    and envelope:
+      "nnreal (query_raw_preimage_card_envelope (card B)) / nnreal size \<le>
         query_error_bound"
   shows
     "wp_event verify_monad
@@ -2519,7 +2541,7 @@ lemma verifier_initial_query_rounds_any_index_set_error_bound:
       (verifier_initial_state tr) \<le>
       nnreal rounds * query_error_bound"
   by (rule wp_verify_monad_query_rounds_any_index_set_query_error_bound
-      [OF verifier_initial_query_future_fresh raw_bound subset frac])
+      [OF verifier_initial_query_future_fresh raw_bound subset envelope])
 
 definition query_index_freshness_assumption
   :: "('f, 'a) protocol_channel_scheme \<Rightarrow> bool"
@@ -2529,8 +2551,10 @@ definition query_index_freshness_assumption
         (\<forall>trace_table composition_table as.
           good_sets trace_table composition_table as \<subseteq> query_sample_space) \<longrightarrow>
         (\<forall>trace_table composition_table as.
-          nnreal (card (good_sets trace_table composition_table as)) /
-            nnreal (card query_sample_space) \<le> query_error_bound) \<longrightarrow>
+          nnreal
+            (query_raw_preimage_card_envelope
+              (card (good_sets trace_table composition_table as))) /
+            nnreal size \<le> query_error_bound) \<longrightarrow>
         wp_event verify_monad (query_index_set_hit s good_sets) s \<le>
           nnreal rounds * query_error_bound)"
 
@@ -2542,8 +2566,10 @@ definition query_index_round_freshness_assumption
         (\<forall>trace_table composition_table as.
           good_sets trace_table composition_table as \<subseteq> query_sample_space) \<longrightarrow>
         (\<forall>trace_table composition_table as.
-          nnreal (card (good_sets trace_table composition_table as)) /
-            nnreal (card query_sample_space) \<le> query_error_bound) \<longrightarrow>
+          nnreal
+            (query_raw_preimage_card_envelope
+              (card (good_sets trace_table composition_table as))) /
+            nnreal size \<le> query_error_bound) \<longrightarrow>
         wp_event verify_monad (query_index_round_set_hit s good_sets) s \<le>
           nnreal rounds * query_error_bound)"
 
@@ -2558,8 +2584,10 @@ proof (intro allI impI)
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and frac:
       "\<forall>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   have "wp_event verify_monad (query_index_set_hit s good_sets) s \<le>
       wp_event verify_monad (query_index_round_set_hit s good_sets) s"
     by (rule wp_event_mono) (rule query_index_set_hit_imp_round_set_hit)
@@ -2583,15 +2611,18 @@ proof (intro allI impI)
         good_sets trace_table composition_table as \<subseteq> query_sample_space"
     and bounded:
       "\<forall>trace_table composition_table as.
-        nnreal (card (good_sets trace_table composition_table as)) /
-          nnreal (card query_sample_space) \<le> query_error_bound"
+        nnreal
+          (query_raw_preimage_card_envelope
+            (card (good_sets trace_table composition_table as))) /
+          nnreal size \<le> query_error_bound"
   have union_bound:
     "\<And>fr f_fri_roots f_final as dg composition_fri_roots final.
       nnreal
-        (card
-          (query_header_supported_union_good_sets s good_sets fr f_fri_roots
-            f_final as dg composition_fri_roots final)) /
-      nnreal (card query_sample_space) \<le> query_error_bound"
+        (query_raw_preimage_card_envelope
+          (card
+            (query_header_supported_union_good_sets s good_sets fr f_fri_roots
+              f_final as dg composition_fri_roots final))) /
+      nnreal size \<le> query_error_bound"
     by (rule
         query_header_supported_union_good_sets_fraction_bound_if_no_global_pairwise_merkle_bad
         [OF no_bad])
@@ -2619,21 +2650,6 @@ lemma verifier_initial_query_index_freshness_if_no_query_supported_pairwise_merk
   by (rule query_index_freshness_if_no_query_supported_pairwise_merkle_bad)
     (use raw_bound no_bad in simp_all)
 
-lemma verifier_initial_query_index_freshness_if_uniform_sampler_and_no_query_supported_pairwise_merkle_bad:
-  assumes range_eq: "range to_nat = {0..<size}"
-    and dvd: "query_sample_space_size dvd size"
-    and no_bad:
-      "\<not> query_supported_pairwise_merkle_bad (verifier_initial_state tr)"
-  shows "query_index_freshness_assumption (verifier_initial_state tr)"
-proof -
-  have raw_bound: "query_index_raw_preimage_bound"
-    by (rule query_index_raw_preimage_bound_if_uniform_range
-        [OF range_eq dvd])
-  show ?thesis
-    by (rule
-        verifier_initial_query_index_freshness_if_no_query_supported_pairwise_merkle_bad
-        [OF raw_bound no_bad])
-qed
 
 lemma query_index_freshness_rounds_zero_obstruction:
   assumes rounds_zero: "rounds = 0"
@@ -2656,14 +2672,16 @@ proof
     "\<And>trace_table composition_table as.
       ?good_sets trace_table composition_table as \<subseteq> query_sample_space"
     by simp
-  have frac:
+  have envelope:
     "\<And>trace_table composition_table as.
-      nnreal (card (?good_sets trace_table composition_table as)) /
-        nnreal (card query_sample_space) \<le> query_error_bound"
-    by simp
+      nnreal
+        (query_raw_preimage_card_envelope
+          (card (?good_sets trace_table composition_table as))) /
+        nnreal size \<le> query_error_bound"
+    unfolding query_raw_preimage_card_envelope_def by simp
   have zero_bound:
     "wp_event verify_monad (query_index_set_hit s ?good_sets) s \<le> 0"
-    using fresh subset frac rounds_zero
+    using fresh subset envelope rounds_zero
     unfolding query_index_freshness_assumption_def by simp
   have zero:
     "wp_event verify_monad (query_index_set_hit s ?good_sets) s = 0"
@@ -2719,7 +2737,7 @@ proof -
       (query_index_set_hit s query_sampling_success_space) s \<le>
         nnreal rounds * query_error_bound"
     using fresh query_sampling_success_space_subset
-      query_sampling_success_space_fraction_bound_query_sample_space
+      query_sampling_success_space_envelope_fraction_bound
     unfolding query_index_freshness_assumption_def
     by blast
   have "wp_event verify_monad (query_bad s) s \<le>

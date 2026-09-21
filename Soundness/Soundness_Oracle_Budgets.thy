@@ -807,6 +807,340 @@ lemma hash_target_program_modify:
   by (rule hash_map_preserving_imp_hash_target_program_zero)
     (rule hash_map_preserving_modify[OF assms])
 
+lemma hash_range_budget_protocol_absorb_message:
+  "hash_range_budget 1 (protocol_absorb_message x)"
+proof -
+  have get_step:
+    "hash_range_budget 0
+      (get :: (('f, 'a) protocol_channel_scheme,
+        ('f, 'a) protocol_channel_scheme) state_monad)"
+    by (rule hash_range_budget_get)
+  have hash_then_modify:
+    "hash_range_budget (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := x # PTranscript s\<rparr>)) ::
+        (unit, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_hash,
+       rule hash_range_budget_modify_preserves_hash_map, simp)
+  have "hash_range_budget (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: ('f, 'a) protocol_channel_scheme.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := x # PTranscript s\<rparr>))))"
+    by (rule hash_range_budget_bind[OF get_step hash_then_modify])
+  then show ?thesis
+    unfolding protocol_absorb_message_def
+    by simp
+qed
+
+lemma hash_collision_budget_protocol_absorb_message:
+  "hash_collision_budget 1 (protocol_absorb_message x)"
+proof -
+  have get_range:
+    "hash_range_budget 0
+      (get :: (('f, 'a) protocol_channel_scheme,
+        ('f, 'a) protocol_channel_scheme) state_monad)"
+    by (rule hash_range_budget_get)
+  have get_coll:
+    "hash_collision_budget 0
+      (get :: (('f, 'a) protocol_channel_scheme,
+        ('f, 'a) protocol_channel_scheme) state_monad)"
+    by (rule hash_collision_budget_get)
+  have hash_then_modify_range:
+    "hash_range_budget (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := x # PTranscript s\<rparr>)) ::
+        (unit, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_hash,
+       rule hash_range_budget_modify_preserves_hash_map, simp)
+  have hash_then_modify_coll:
+    "hash_collision_budget (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := x # PTranscript s\<rparr>)) ::
+        (unit, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_collision_budget_bind)
+      (rule hash_range_budget_hash, rule hash_collision_budget_hash,
+       rule hash_range_budget_modify_preserves_hash_map, simp,
+       rule hash_collision_budget_modify_preserves_hash_map, simp)
+  have "hash_collision_budget (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: ('f, 'a) protocol_channel_scheme.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := x # PTranscript s\<rparr>))))"
+    by (rule hash_collision_budget_bind[OF get_range get_coll
+          hash_then_modify_range hash_then_modify_coll])
+  then show ?thesis
+    unfolding protocol_absorb_message_def
+    by simp
+qed
+
+lemma hash_target_program_protocol_absorb_message:
+  "hash_target_program B 1 (protocol_absorb_message x)"
+proof -
+  have hash_then_modify:
+    "hash_target_program B (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := x # PTranscript s\<rparr>)) ::
+        (unit, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_target_program_bind)
+      (rule hash_target_program_hash,
+       rule hash_target_program_modify, simp)
+  have "hash_target_program B (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: ('f, 'a) protocol_channel_scheme.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := x # PTranscript s\<rparr>))))"
+    by (rule hash_target_program_bind[OF hash_target_program_get
+          hash_then_modify])
+  then show ?thesis
+    unfolding protocol_absorb_message_def
+    by simp
+qed
+
+lemma hash_range_budget_protocol_absorb_read:
+  "hash_range_budget 1
+    (protocol_absorb_read :: ('f, 'f, 'a) protocol_c_monad)"
+proof -
+  have get_step:
+    "hash_range_budget 0
+      (get :: (('f, 'a) protocol_channel_scheme,
+        ('f, 'a) protocol_channel_scheme) state_monad)"
+    by (rule hash_range_budget_get)
+  have modify_then_return:
+    "hash_range_budget (0 + 0)
+      (modify
+        (\<lambda>t. t\<lparr>PState := h,
+          PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+        (\<lambda>_. return (hd (PTranscript s))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme" and h :: 'f
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_modify_preserves_hash_map, simp,
+       rule hash_range_budget_return)
+  have hash_then_tail:
+    "hash_range_budget (1 + (0 + 0))
+      (hash (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>t. t\<lparr>PState := h,
+            PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+          (\<lambda>_. return (hd (PTranscript s)))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_hash, rule modify_then_return)
+  have assert_then_tail:
+    "hash_range_budget (0 + (1 + (0 + 0)))
+      (assert (PTranscript s \<noteq> []) \<bind>
+        (\<lambda>_. hash
+          (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+          (\<lambda>h. modify
+            (\<lambda>t. t\<lparr>PState := h,
+              PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+            (\<lambda>_. return (hd (PTranscript s))))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_assert, rule hash_then_tail)
+  have "hash_range_budget (0 + (0 + (1 + (0 + 0))))
+      (get \<bind>
+        (\<lambda>s :: ('f, 'a) protocol_channel_scheme.
+          assert (PTranscript s \<noteq> []) \<bind>
+            (\<lambda>_. hash
+              (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+              (\<lambda>h. modify
+                (\<lambda>t. t\<lparr>PState := h,
+                  PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+                (\<lambda>_. return (hd (PTranscript s)))))))"
+    by (rule hash_range_budget_bind[OF get_step assert_then_tail])
+  then show ?thesis
+    unfolding protocol_absorb_read_def
+    by simp
+qed
+
+lemma hash_collision_budget_protocol_absorb_read:
+  "hash_collision_budget 1
+    (protocol_absorb_read :: ('f, 'f, 'a) protocol_c_monad)"
+proof -
+  have get_range:
+    "hash_range_budget 0
+      (get :: (('f, 'a) protocol_channel_scheme,
+        ('f, 'a) protocol_channel_scheme) state_monad)"
+    by (rule hash_range_budget_get)
+  have get_coll:
+    "hash_collision_budget 0
+      (get :: (('f, 'a) protocol_channel_scheme,
+        ('f, 'a) protocol_channel_scheme) state_monad)"
+    by (rule hash_collision_budget_get)
+  have modify_then_return_range:
+    "hash_range_budget (0 + 0)
+      (modify
+        (\<lambda>t. t\<lparr>PState := h,
+          PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+        (\<lambda>_. return (hd (PTranscript s))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme" and h :: 'f
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_modify_preserves_hash_map, simp,
+       rule hash_range_budget_return)
+  have modify_then_return_coll:
+    "hash_collision_budget (0 + 0)
+      (modify
+        (\<lambda>t. t\<lparr>PState := h,
+          PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+        (\<lambda>_. return (hd (PTranscript s))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme" and h :: 'f
+    by (rule hash_collision_budget_bind)
+      (rule hash_range_budget_modify_preserves_hash_map, simp,
+       rule hash_collision_budget_modify_preserves_hash_map, simp,
+       rule hash_range_budget_return,
+       rule hash_collision_budget_return)
+  have hash_then_tail_range:
+    "hash_range_budget (1 + (0 + 0))
+      (hash (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>t. t\<lparr>PState := h,
+            PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+          (\<lambda>_. return (hd (PTranscript s)))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_hash, rule modify_then_return_range)
+  have hash_then_tail_coll:
+    "hash_collision_budget (1 + (0 + 0))
+      (hash (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>t. t\<lparr>PState := h,
+            PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+          (\<lambda>_. return (hd (PTranscript s)))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_collision_budget_bind)
+      (rule hash_range_budget_hash, rule hash_collision_budget_hash,
+       rule modify_then_return_range,
+       rule modify_then_return_coll)
+  have assert_then_tail_range:
+    "hash_range_budget (0 + (1 + (0 + 0)))
+      (assert (PTranscript s \<noteq> []) \<bind>
+        (\<lambda>_. hash
+          (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+          (\<lambda>h. modify
+            (\<lambda>t. t\<lparr>PState := h,
+              PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+            (\<lambda>_. return (hd (PTranscript s))))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_assert, rule hash_then_tail_range)
+  have assert_then_tail_coll:
+    "hash_collision_budget (0 + (1 + (0 + 0)))
+      (assert (PTranscript s \<noteq> []) \<bind>
+        (\<lambda>_. hash
+          (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+          (\<lambda>h. modify
+            (\<lambda>t. t\<lparr>PState := h,
+              PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+            (\<lambda>_. return (hd (PTranscript s))))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_collision_budget_bind)
+      (rule hash_range_budget_assert,
+       rule hash_collision_budget_assert,
+       rule hash_then_tail_range,
+       rule hash_then_tail_coll)
+  have "hash_collision_budget (0 + (0 + (1 + (0 + 0))))
+      (get \<bind>
+        (\<lambda>s :: ('f, 'a) protocol_channel_scheme.
+          assert (PTranscript s \<noteq> []) \<bind>
+            (\<lambda>_. hash
+              (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+              (\<lambda>h. modify
+                (\<lambda>t. t\<lparr>PState := h,
+                  PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+                (\<lambda>_. return (hd (PTranscript s)))))))"
+    by (rule hash_collision_budget_bind[OF get_range get_coll
+          assert_then_tail_range assert_then_tail_coll])
+  then show ?thesis
+    unfolding protocol_absorb_read_def
+    by simp
+qed
+
+lemma hash_target_program_protocol_absorb_read:
+  "hash_target_program B 1
+    (protocol_absorb_read :: ('f, 'f, 'a) protocol_c_monad)"
+proof -
+  have modify_then_return:
+    "hash_target_program B (0 + 0)
+      (modify
+        (\<lambda>t. t\<lparr>PState := h,
+          PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+        (\<lambda>_. return (hd (PTranscript s))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme" and h :: 'f
+    by (rule hash_target_program_bind)
+      (rule hash_target_program_modify, simp,
+       rule hash_target_program_return)
+  have hash_then_tail:
+    "hash_target_program B (1 + (0 + 0))
+      (hash (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>t. t\<lparr>PState := h,
+            PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+          (\<lambda>_. return (hd (PTranscript s)))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_target_program_bind)
+      (rule hash_target_program_hash,
+       rule modify_then_return)
+  have assert_then_tail:
+    "hash_target_program B (0 + (1 + (0 + 0)))
+      (assert (PTranscript s \<noteq> []) \<bind>
+        (\<lambda>_. hash
+          (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+          (\<lambda>h. modify
+            (\<lambda>t. t\<lparr>PState := h,
+              PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+            (\<lambda>_. return (hd (PTranscript s))))) ::
+        ('f, ('f, 'a) protocol_channel_scheme) state_monad)"
+    for s :: "('f, 'a) protocol_channel_scheme"
+    by (rule hash_target_program_bind)
+      (rule hash_target_program_assert, rule hash_then_tail)
+  have "hash_target_program B (0 + (0 + (1 + (0 + 0))))
+      (get \<bind>
+        (\<lambda>s :: ('f, 'a) protocol_channel_scheme.
+          assert (PTranscript s \<noteq> []) \<bind>
+            (\<lambda>_. hash
+              (TranscriptAbsorb (PState s) (hd (PTranscript s))) \<bind>
+              (\<lambda>h. modify
+                (\<lambda>t. t\<lparr>PState := h,
+                  PTranscript := tl (PTranscript t)\<rparr>) \<bind>
+                (\<lambda>_. return (hd (PTranscript s)))))))"
+    by (rule hash_target_program_bind[OF hash_target_program_get
+          assert_then_tail])
+  then show ?thesis
+    unfolding protocol_absorb_read_def
+    by simp
+qed
 lemma hash_target_program_receive_random_field_element:
   "hash_target_program B 1
     (receive_random_field_element :: ('f, 'f, 'a) protocol_c_monad)"

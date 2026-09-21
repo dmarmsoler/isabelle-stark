@@ -169,14 +169,14 @@ lemma wp_trace_fri_query_index_list_set_hit_exact_bound:
   shows
     "wp_event verify_monad (trace_fri_query_index_list_set_hit s Q) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have event_bound:
     "wp_event verify_monad
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_verify_monad_query_index_list_set_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -192,14 +192,14 @@ lemma wp_composition_fri_query_index_list_set_hit_exact_bound:
   shows
     "wp_event verify_monad (composition_fri_query_index_list_set_hit s Q) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have event_bound:
     "wp_event verify_monad
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_verify_monad_query_index_list_set_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -216,12 +216,12 @@ lemma wp_trace_fri_query_challenge_pair_set_hit_bound_from_query_projection:
   shows
     "wp_event verify_monad (trace_fri_query_challenge_pair_set_hit s P) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have event_bound:
     "wp_event verify_monad (trace_fri_query_index_list_set_hit s Q) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_trace_fri_query_index_list_set_hit_exact_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -241,13 +241,13 @@ lemma
     "wp_event verify_monad
       (composition_fri_query_challenge_pair_set_hit s P) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have event_bound:
     "wp_event verify_monad (composition_fri_query_index_list_set_hit s Q) s
       \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_composition_fri_query_index_list_set_hit_exact_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -267,12 +267,12 @@ lemma wp_trace_fri_sampled_query_pair_set_hit_bound_from_query_projection:
   shows
     "wp_event verify_monad (trace_fri_sampled_query_pair_set_hit R s) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have event_bound:
     "wp_event verify_monad (trace_fri_query_index_list_set_hit s Q) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_trace_fri_query_index_list_set_hit_exact_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -293,13 +293,13 @@ lemma wp_composition_fri_sampled_query_pair_set_hit_bound_from_query_projection:
     "wp_event verify_monad
       (composition_fri_sampled_query_pair_set_hit R s) s \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   have event_bound:
     "wp_event verify_monad (composition_fri_query_index_list_set_hit s Q) s
       \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_composition_fri_query_index_list_set_hit_exact_bound
         [OF future raw_bound subset])
   show ?thesis
@@ -319,7 +319,7 @@ lemma wp_verifier_after_trace_fri_query_index_list_set_bound:
       (\<lambda>out. \<exists>query_idxs \<in> Q.
         query_rounds_index_list_hit s query_idxs rounds out) t \<le>
       nnreal (card Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
 proof -
   obtain fr f_fl where header_eq: "header = (fr, f_fl)"
     by (cases header) auto
@@ -328,7 +328,7 @@ proof -
       query_rounds_index_list_hit s query_idxs rounds out"
   let ?C =
     "nnreal (card Q) *
-      (1 / nnreal (card query_sample_space)) ^ rounds"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
   have after_eq:
     "verifier_after_trace_fri header =
       (read \<bind>
@@ -586,7 +586,7 @@ lemma wp_trace_fri_query_challenge_pair_set_hit_fixed_challenge_bound:
         trace_fri_query_challenge_pair_set_hit s P out) s \<le>
       (1 / nnreal (CARD('f) ^ ceil_log clength)) *
         (nnreal (card Q) *
-          (1 / nnreal (card query_sample_space)) ^ rounds)"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds)"
 proof -
   let ?Hit =
     "\<lambda>out. trace_fri_challenge_list_set_hit s {challenges} out \<and>
@@ -597,7 +597,7 @@ proof -
       | Some ((_, f_fl), _) \<Rightarrow> map fst f_fl \<in> {challenges}"
   let ?D =
     "nnreal (card Q) *
-      (1 / nnreal (card query_sample_space)) ^ rounds"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
   have bind_bound:
     "wp_event (verifier_trace_fri_prefix \<bind> verifier_after_trace_fri)
       ?Hit s \<le> wp_event verifier_trace_fri_prefix ?Head s * ?D"
@@ -817,7 +817,7 @@ lemma wp_trace_fri_query_challenge_pair_set_hit_bound_from_query_fiber_sum:
       (\<Sum>challenges \<in> fri_challenge_space (ceil_log clength).
         (1 / nnreal (CARD('f) ^ ceil_log clength)) *
           (nnreal (card (Q challenges)) *
-            (1 / nnreal (card query_sample_space)) ^ rounds))"
+            (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds))"
 proof -
   let ?I = "fri_challenge_space (ceil_log clength)"
   let ?E =
@@ -828,7 +828,7 @@ proof -
     "\<lambda>challenges.
       (1 / nnreal (CARD('f) ^ ceil_log clength)) *
         (nnreal (card (Q challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds)"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds)"
   have split:
     "wp_event verify_monad
       (trace_fri_query_challenge_pair_set_hit s P) s \<le>
@@ -890,7 +890,7 @@ lemma wp_trace_fri_query_challenge_pair_set_hit_bound_from_query_fibers:
     and bound:
       "\<And>challenges.
         nnreal (card (Q challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C"
   shows
     "wp_event verify_monad
       (trace_fri_query_challenge_pair_set_hit s P) s \<le> C"
@@ -920,7 +920,7 @@ next
         query_rounds_index_list_hit s query_idxs rounds out)
       prefix_state \<le>
       nnreal (card ?Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_verifier_after_trace_fri_query_index_list_set_bound
         [OF future_prefix counter_prefix raw_bound subset])
   have pair_to_query:
@@ -1013,7 +1013,7 @@ lemma wp_trace_fri_query_challenge_pair_set_hit_bound_from_challenge_cover_and_q
     and query_bound:
       "\<And>challenges.
         nnreal (card (Q challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
   shows
     "wp_event verify_monad
       (trace_fri_query_challenge_pair_set_hit s P) s \<le>
@@ -1099,7 +1099,7 @@ lemma
     and bound:
       "\<And>dg challenges.
         nnreal (card (Q dg challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C"
   shows
     "wp_event verify_monad
       (composition_fri_query_challenge_pair_set_hit s P) s \<le> C"
@@ -1130,7 +1130,7 @@ next
         query_rounds_index_list_hit s query_idxs rounds out)
       prefix_state \<le>
       nnreal (card ?Q) *
-        (1 / nnreal (card query_sample_space)) ^ rounds"
+        (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
     by (rule wp_verifier_after_composition_fri_query_index_list_set_bound
         [OF future_prefix counter_prefix raw_bound subset])
   have pair_to_query:
@@ -1227,7 +1227,7 @@ lemma wp_composition_fri_query_challenge_pair_set_hit_fixed_challenge_bound:
         composition_fri_query_challenge_pair_set_hit s P out) s \<le>
       (1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1))) *
         (nnreal (card Q) *
-          (1 / nnreal (card query_sample_space)) ^ rounds)"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds)"
 proof -
   let ?B = "\<lambda>dg'. if dg' = dg then {challenges} else {}"
   let ?Hit =
@@ -1240,7 +1240,7 @@ proof -
           dg' = dg \<and> map fst fl = challenges"
   let ?D =
     "nnreal (card Q) *
-      (1 / nnreal (card query_sample_space)) ^ rounds"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds"
   have bind_bound:
     "wp_event
       (verifier_composition_fri_prefix \<bind> verifier_after_composition_fri)
@@ -1499,7 +1499,7 @@ lemma wp_composition_fri_query_challenge_pair_set_hit_bound_from_query_fiber_sum
         \<Sum>challenges \<in> fri_challenge_space (ceil_log (to_nat dg + 1)).
           (1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1))) *
             (nnreal (card (Q dg challenges)) *
-              (1 / nnreal (card query_sample_space)) ^ rounds))"
+              (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds))"
 proof -
   let ?I =
     "SIGMA dg:UNIV. fri_challenge_space (ceil_log (to_nat dg + 1))"
@@ -1512,7 +1512,7 @@ proof -
     "\<lambda>p.
       (1 / nnreal (CARD('f) ^ ceil_log (to_nat (fst p) + 1))) *
         (nnreal (card (Q (fst p) (snd p))) *
-          (1 / nnreal (card query_sample_space)) ^ rounds)"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds)"
   have split:
     "wp_event verify_monad
       (composition_fri_query_challenge_pair_set_hit s P) s \<le>
@@ -1574,7 +1574,7 @@ proof -
           composition_fri_query_challenge_pair_set_hit s P out) s
         \<le> 1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1)) *
           (nnreal (card (Q dg challenges)) *
-            (1 / nnreal (card query_sample_space)) ^ rounds)"
+            (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds)"
       by (rule
           wp_composition_fri_query_challenge_pair_set_hit_fixed_challenge_bound
             [OF composition_future query_future raw_bound challenges
@@ -1587,7 +1587,7 @@ proof -
         \<Sum>challenges \<in> fri_challenge_space (ceil_log (to_nat dg + 1)).
           (1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1))) *
             (nnreal (card (Q dg challenges)) *
-              (1 / nnreal (card query_sample_space)) ^ rounds))"
+              (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds))"
     by (subst sum.Sigma) (simp_all add: finite_fri_challenge_space case_prod_beta)
   finally show ?thesis .
 qed
@@ -1611,7 +1611,7 @@ lemma wp_composition_fri_query_challenge_pair_set_hit_bound_from_challenge_cover
     and query_bound:
       "\<And>dg challenges.
         nnreal (card (Q dg challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
   shows
     "wp_event verify_monad
       (composition_fri_query_challenge_pair_set_hit s P) s \<le>
@@ -1707,7 +1707,7 @@ lemma wp_trace_fri_sampled_query_bad_candidate_bound_from_challenge_cover_and_qu
     and query_bound:
       "\<And>challenges.
         nnreal (card (Q challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
   shows
     "wp_event verify_monad (trace_fri_sampled_query_bad_candidate s) s \<le>
       C_challenge + C_query"
@@ -1750,7 +1750,7 @@ lemma wp_composition_fri_sampled_query_bad_candidate_bound_from_challenge_cover_
     and query_bound:
       "\<And>dg challenges.
         nnreal (card (Q dg challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
   shows
     "wp_event verify_monad
       (composition_fri_sampled_query_bad_candidate s) s \<le>
@@ -1788,7 +1788,7 @@ lemma wp_trace_fri_sampled_query_bad_candidate_bound_from_generic_challenge_cove
           (card
             (generic_fri_sampled_query_query_fiber trace_table_low_degree
               (Not \<circ> trace_table_low_degree) (clength - 1) challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
   shows
     "wp_event verify_monad (trace_fri_sampled_query_bad_candidate s) s \<le>
       C_challenge + C_query"
@@ -1824,91 +1824,8 @@ next
       (card
         (generic_fri_sampled_query_query_fiber trace_table_low_degree
           (Not \<circ> trace_table_low_degree) (clength - 1) challenges)) *
-      (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
     by (rule query_bound)
-qed
-
-lemma wp_trace_fri_sampled_query_bad_candidate_bound_from_pair_fraction:
-  assumes trace_future: "trace_fri_future_fresh s"
-    and query_future: "query_future_fresh s"
-    and raw_bound: "query_index_raw_preimage_bound"
-    and fraction:
-      "generic_fri_sampled_query_pair_fraction_bound trace_table_low_degree
-        (Not \<circ> trace_table_low_degree) (clength - 1) C"
-  shows
-    "wp_event verify_monad (trace_fri_sampled_query_bad_candidate s) s \<le> C"
-proof -
-  let ?P =
-    "trace_fri_sampled_query_bad_pair_union \<inter>
-      (fri_query_index_list_space \<times> UNIV)"
-  let ?Q =
-    "\<lambda>challenges.
-      generic_fri_sampled_query_query_fiber trace_table_low_degree
-        (Not \<circ> trace_table_low_degree) (clength - 1) challenges"
-  let ?I = "fri_challenge_space (ceil_log clength)"
-  have sampled_to_pair:
-    "wp_event verify_monad (trace_fri_sampled_query_bad_candidate s) s
-      \<le> wp_event verify_monad
-        (trace_fri_query_challenge_pair_set_hit s ?P) s"
-    by (rule
-        wp_trace_fri_sampled_query_bad_candidate_bound_by_restricted_query_challenge_union_hit)
-  also have "... \<le>
-      (\<Sum>challenges \<in> ?I.
-        (1 / nnreal (CARD('f) ^ ceil_log clength)) *
-          (nnreal (card (?Q challenges)) *
-            (1 / nnreal (card query_sample_space)) ^ rounds))"
-  proof (rule
-      wp_trace_fri_query_challenge_pair_set_hit_bound_from_query_fiber_sum
-      [OF trace_future query_future raw_bound])
-    fix challenges
-    show "fst ` (?P \<inter> (UNIV \<times> {challenges})) \<subseteq>
-        ?Q challenges"
-      unfolding trace_fri_sampled_query_bad_pair_union_def
-        generic_fri_sampled_query_query_fiber_def
-        generic_fri_sampled_query_restricted_bad_pairs_def
-        fri_query_challenge_pair_query_fiber_def
-      by auto
-  next
-    fix challenges
-    show "?Q challenges \<subseteq> fri_query_index_list_space"
-      by (rule generic_fri_sampled_query_query_fiber_subset)
-  qed
-  also have "... \<le> C"
-  proof -
-    have round_eq:
-      "fri_round_count_for_degree_bound (clength - Suc 0) = ceil_log clength"
-      unfolding fri_round_count_for_degree_bound_def
-      by (simp add: clength_pos)
-    have fiber_fraction:
-      "nnreal
-        (\<Sum>challenges \<in> ?I. card (?Q challenges)) /
-        (nnreal (CARD('f) ^ ceil_log clength) *
-          nnreal query_sample_space_size ^ rounds)
-        \<le> C"
-      using fraction
-      unfolding trace_fri_sampled_query_pair_fraction_bound_iff_fiber_sum
-      by (simp add: round_eq card_fri_query_index_list_space
-          query_sample_space_size_pos algebra_simps)
-    have prob_eq:
-      "(\<Sum>challenges \<in> ?I.
-        (1 / nnreal (CARD('f) ^ ceil_log clength)) *
-          (nnreal (card (?Q challenges)) *
-            (1 / nnreal (card query_sample_space)) ^ rounds)) =
-      nnreal
-        (\<Sum>challenges \<in> ?I. card (?Q challenges)) /
-        (nnreal (CARD('f) ^ ceil_log clength) *
-          nnreal query_sample_space_size ^ rounds)"
-      using weighted_query_fiber_sum_eq
-        [where I = ?I
-          and f = "\<lambda>challenges. card (?Q challenges)"
-          and A = "CARD('f) ^ ceil_log clength"
-          and B = query_sample_space_size]
-      by (simp add: finite_fri_challenge_space query_sample_space_size_pos
-          card_query_sample_space algebra_simps)
-    show ?thesis
-      using fiber_fraction unfolding prob_eq .
-  qed
-  finally show ?thesis .
 qed
 
 lemma wp_composition_fri_sampled_query_bad_candidate_bound_from_generic_challenge_cover_and_fibers:
@@ -1929,7 +1846,7 @@ lemma wp_composition_fri_sampled_query_bad_candidate_bound_from_generic_challeng
               (composition_table_low_degree (to_nat dg))
               (Not \<circ> composition_table_low_degree maxDegree) (to_nat dg)
               challenges)) *
-          (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+          (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
   shows
     "wp_event verify_monad
       (composition_fri_sampled_query_bad_candidate s) s \<le>
@@ -1973,105 +1890,8 @@ next
           (composition_table_low_degree (to_nat dg))
           (Not \<circ> composition_table_low_degree maxDegree) (to_nat dg)
           challenges)) *
-      (1 / nnreal (card query_sample_space)) ^ rounds \<le> C_query"
+      (nnreal (query_raw_preimage_card_envelope 1) / nnreal size) ^ rounds \<le> C_query"
     by (rule query_bound)
-qed
-
-lemma wp_composition_fri_sampled_query_bad_candidate_bound_from_pair_fraction_sum:
-  fixes C :: "'f \<Rightarrow> prob"
-  assumes composition_future: "composition_fri_future_fresh s"
-    and query_future: "query_future_fresh s"
-    and raw_bound: "query_index_raw_preimage_bound"
-    and fraction:
-      "\<And>dg. generic_fri_sampled_query_pair_fraction_bound
-        (composition_table_low_degree (to_nat dg))
-        (Not \<circ> composition_table_low_degree maxDegree) (to_nat dg) (C dg)"
-  shows
-    "wp_event verify_monad
-      (composition_fri_sampled_query_bad_candidate s) s \<le>
-      (\<Sum>dg \<in> UNIV. C dg)"
-proof -
-  let ?P =
-    "\<lambda>dg. composition_fri_sampled_query_bad_pair_union dg \<inter>
-      (fri_query_index_list_space \<times> UNIV)"
-  let ?Q =
-    "\<lambda>dg challenges.
-      generic_fri_sampled_query_query_fiber
-        (composition_table_low_degree (to_nat dg))
-        (Not \<circ> composition_table_low_degree maxDegree) (to_nat dg)
-        challenges"
-  have sampled_to_pair:
-    "wp_event verify_monad (composition_fri_sampled_query_bad_candidate s) s
-      \<le> wp_event verify_monad
-        (composition_fri_query_challenge_pair_set_hit s ?P) s"
-    by (rule
-        wp_composition_fri_sampled_query_bad_candidate_bound_by_restricted_query_challenge_union_hit)
-  also have "... \<le>
-      (\<Sum>dg \<in> UNIV.
-        \<Sum>challenges \<in> fri_challenge_space (ceil_log (to_nat dg + 1)).
-          (1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1))) *
-            (nnreal (card (?Q dg challenges)) *
-              (1 / nnreal (card query_sample_space)) ^ rounds))"
-  proof (rule
-      wp_composition_fri_query_challenge_pair_set_hit_bound_from_query_fiber_sum
-      [OF composition_future query_future raw_bound])
-    fix dg challenges
-    show "fst ` (?P dg \<inter> (UNIV \<times> {challenges})) \<subseteq>
-        ?Q dg challenges"
-      unfolding composition_fri_sampled_query_bad_pair_union_def
-        generic_fri_sampled_query_query_fiber_def
-        generic_fri_sampled_query_restricted_bad_pairs_def
-        fri_query_challenge_pair_query_fiber_def
-      by auto
-  next
-    fix dg challenges
-    show "?Q dg challenges \<subseteq> fri_query_index_list_space"
-      by (rule generic_fri_sampled_query_query_fiber_subset)
-  qed
-  also have "... \<le> (\<Sum>dg \<in> UNIV. C dg)"
-  proof (rule sum_mono)
-    fix dg :: 'f
-    assume "dg \<in> UNIV"
-    let ?I = "fri_challenge_space (ceil_log (to_nat dg + 1))"
-    have round_eq:
-      "fri_round_count_for_degree_bound (to_nat dg) =
-        ceil_log (to_nat dg + 1)"
-      unfolding fri_round_count_for_degree_bound_def by simp
-    have fiber_fraction:
-      "nnreal
-        (\<Sum>challenges \<in> ?I. card (?Q dg challenges)) /
-        (nnreal (CARD('f) ^ ceil_log (to_nat dg + 1)) *
-          nnreal query_sample_space_size ^ rounds)
-        \<le> C dg"
-      using fraction[of dg]
-      unfolding composition_fri_sampled_query_pair_fraction_bound_iff_fiber_sum
-      by (simp add: round_eq card_fri_query_index_list_space
-          query_sample_space_size_pos algebra_simps)
-    have prob_eq:
-      "(\<Sum>challenges \<in> ?I.
-          (1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1))) *
-            (nnreal (card (?Q dg challenges)) *
-              (1 / nnreal (card query_sample_space)) ^ rounds)) =
-      nnreal
-        (\<Sum>challenges \<in> ?I. card (?Q dg challenges)) /
-        (nnreal (CARD('f) ^ ceil_log (to_nat dg + 1)) *
-          nnreal query_sample_space_size ^ rounds)"
-      using weighted_query_fiber_sum_eq
-        [where I = ?I
-          and f = "\<lambda>challenges. card (?Q dg challenges)"
-          and A = "CARD('f) ^ ceil_log (to_nat dg + 1)"
-          and B = query_sample_space_size]
-      by (simp add: finite_fri_challenge_space query_sample_space_size_pos
-          card_query_sample_space algebra_simps)
-    show
-      "(\<Sum>challenges \<in> ?I.
-          (1 / nnreal (CARD('f) ^ ceil_log (to_nat dg + 1))) *
-            (nnreal (card (?Q dg challenges)) *
-              (1 / nnreal (card query_sample_space)) ^ rounds))
-       \<le> C dg"
-      using fiber_fraction unfolding prob_eq .
-  qed
-  finally show ?thesis .
 qed
 
 end

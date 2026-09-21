@@ -161,6 +161,275 @@ lemma hash_relation_program_record_staged_messages:
   by (rule hash_relation_program_zero)
     (rule record_staged_messages_preserves_hash_map)
 
+lemma ro_record_staged_message_outcome:
+  assumes
+    "Some ((), t) \<in> set_dist (execute (ro_record_staged_message x) s)"
+  obtains h u where
+    "Some (h, u) \<in>
+      set_dist (execute (hash (TranscriptAbsorb (PState s) x)) s)"
+    "t = u\<lparr>PState := h, PTranscript := PTranscript u @ [x]\<rparr>"
+    "PState u = PState s"
+    "PTranscript u = PTranscript s"
+    "PTraceFriCounter u = PTraceFriCounter s"
+    "PCompositionFriCounter u = PCompositionFriCounter s"
+    "PAlphaCounter u = PAlphaCounter s"
+    "PQueryCounter u = PQueryCounter s"
+    "s \<le> u"
+proof -
+  from assms obtain h u where hash_out:
+      "Some (h, u) \<in>
+        set_dist (execute (hash (TranscriptAbsorb (PState s) x)) s)"
+    and mod_out:
+      "Some ((), t) \<in>
+        set_dist
+          (execute
+            (modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := PTranscript s @ [x]\<rparr>)) u)"
+    unfolding ro_record_staged_message_def
+    by (auto elim!: set_dist_bindE)
+  have t_eq:
+    "t = u\<lparr>PState := h, PTranscript := PTranscript u @ [x]\<rparr>"
+    using mod_out unfolding modify_def
+    by (auto elim!: set_dist_bindE)
+  have fields:
+    "PState u = PState s"
+    "PTranscript u = PTranscript s"
+    "PTraceFriCounter u = PTraceFriCounter s"
+    "PCompositionFriCounter u = PCompositionFriCounter s"
+    "PAlphaCounter u = PAlphaCounter s"
+    "PQueryCounter u = PQueryCounter s"
+    using protocol_hash_channel_preserves[OF hash_out]
+    by simp_all
+  have ext: "s \<le> u"
+    using protocol_merkle.hash_outcome(1)[OF hash_out] .
+  show ?thesis
+    by (rule that[OF hash_out t_eq fields ext])
+qed
+
+lemma hash_range_budget_ro_record_staged_message:
+  "hash_range_budget 1 (ro_record_staged_message x)"
+proof -
+  have get_step:
+    "hash_range_budget 0
+      (get :: ('f protocol_channel, 'f protocol_channel) state_monad)"
+    by (rule hash_range_budget_get)
+  have hash_then_modify:
+    "hash_range_budget (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := PTranscript s @ [x]\<rparr>)) ::
+        (unit, 'f protocol_channel) state_monad)"
+    for s :: "'f protocol_channel"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_hash,
+       rule hash_range_budget_modify_preserves_hash_map, simp)
+  have "hash_range_budget (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: 'f protocol_channel.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := PTranscript s @ [x]\<rparr>))))"
+    by (rule hash_range_budget_bind[OF get_step hash_then_modify])
+  then show ?thesis
+    unfolding ro_record_staged_message_def
+    by simp
+qed
+
+lemma hash_collision_budget_ro_record_staged_message:
+  "hash_collision_budget 1 (ro_record_staged_message x)"
+proof -
+  have get_range:
+    "hash_range_budget 0
+      (get :: ('f protocol_channel, 'f protocol_channel) state_monad)"
+    by (rule hash_range_budget_get)
+  have get_coll:
+    "hash_collision_budget 0
+      (get :: ('f protocol_channel, 'f protocol_channel) state_monad)"
+    by (rule hash_collision_budget_get)
+  have hash_then_modify_range:
+    "hash_range_budget (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := PTranscript s @ [x]\<rparr>)) ::
+        (unit, 'f protocol_channel) state_monad)"
+    for s :: "'f protocol_channel"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_hash,
+       rule hash_range_budget_modify_preserves_hash_map, simp)
+  have hash_then_modify_coll:
+    "hash_collision_budget (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := PTranscript s @ [x]\<rparr>)) ::
+        (unit, 'f protocol_channel) state_monad)"
+    for s :: "'f protocol_channel"
+    by (rule hash_collision_budget_bind)
+      (rule hash_range_budget_hash, rule hash_collision_budget_hash,
+       rule hash_range_budget_modify_preserves_hash_map, simp,
+       rule hash_collision_budget_modify_preserves_hash_map, simp)
+  have "hash_collision_budget (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: 'f protocol_channel.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := PTranscript s @ [x]\<rparr>))))"
+    by (rule hash_collision_budget_bind[OF get_range get_coll
+          hash_then_modify_range hash_then_modify_coll])
+  then show ?thesis
+    unfolding ro_record_staged_message_def
+    by simp
+qed
+
+lemma hash_target_program_ro_record_staged_message:
+  "hash_target_program B 1 (ro_record_staged_message x)"
+proof -
+  have hash_then_modify:
+    "hash_target_program B (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := PTranscript s @ [x]\<rparr>)) ::
+        (unit, 'f protocol_channel) state_monad)"
+    for s :: "'f protocol_channel"
+    by (rule hash_target_program_bind)
+      (rule hash_target_program_hash,
+       rule hash_target_program_modify, simp)
+  have "hash_target_program B (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: 'f protocol_channel.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := PTranscript s @ [x]\<rparr>))))"
+    by (rule hash_target_program_bind[OF hash_target_program_get
+          hash_then_modify])
+  then show ?thesis
+    unfolding ro_record_staged_message_def
+    by simp
+qed
+
+lemma hash_relation_program_ro_record_staged_message:
+  assumes fibers: "\<And>x. card {y. R x y} \<le> b"
+  shows "hash_relation_program R b 1 (ro_record_staged_message x)"
+proof -
+  have modify_step:
+    "hash_relation_program R b 0
+      (modify
+        (\<lambda>s. s\<lparr>PState := h,
+          PTranscript := PTranscript s @ [x]\<rparr>) ::
+        (unit, 'f protocol_channel) state_monad)"
+    for h :: 'f
+    by (rule hash_relation_program_modify) simp
+  have hash_then_modify:
+    "hash_relation_program R b (1 + 0)
+      (hash (TranscriptAbsorb (PState s) x) \<bind>
+        (\<lambda>h. modify
+          (\<lambda>s. s\<lparr>PState := h,
+            PTranscript := PTranscript s @ [x]\<rparr>)) ::
+        (unit, 'f protocol_channel) state_monad)"
+    for s :: "'f protocol_channel"
+    by (rule hash_relation_program_bind)
+      (rule hash_relation_program_hash[OF fibers], rule modify_step)
+  have "hash_relation_program R b (0 + (1 + 0))
+      (get \<bind>
+        (\<lambda>s :: 'f protocol_channel.
+          hash (TranscriptAbsorb (PState s) x) \<bind>
+            (\<lambda>h. modify
+              (\<lambda>s. s\<lparr>PState := h,
+                PTranscript := PTranscript s @ [x]\<rparr>))))"
+    by (rule hash_relation_program_bind[OF hash_relation_program_get
+          hash_then_modify])
+  then show ?thesis
+    unfolding ro_record_staged_message_def
+    by simp
+qed
+
+lemma hash_range_budget_ro_record_staged_messages:
+  "hash_range_budget (length xs) (ro_record_staged_messages xs)"
+proof (induction xs)
+  case Nil
+  then show ?case
+    unfolding ro_record_staged_messages_def
+    by (simp add: hash_range_budget_return)
+next
+  case (Cons x xs)
+  have "hash_range_budget (1 + length xs)
+      (ro_record_staged_message x \<bind>
+        (\<lambda>_. ro_record_staged_messages xs))"
+    by (rule hash_range_budget_bind)
+      (rule hash_range_budget_ro_record_staged_message, rule Cons.IH)
+  then show ?case
+    unfolding ro_record_staged_messages_def by simp
+qed
+
+lemma hash_collision_budget_ro_record_staged_messages:
+  "hash_collision_budget (length xs) (ro_record_staged_messages xs)"
+proof (induction xs)
+  case Nil
+  then show ?case
+    unfolding ro_record_staged_messages_def
+    by (simp add: hash_collision_budget_return)
+next
+  case (Cons x xs)
+  have range_tail:
+    "hash_range_budget (length xs) (ro_record_staged_messages xs)"
+    by (rule hash_range_budget_ro_record_staged_messages)
+  have "hash_collision_budget (1 + length xs)
+      (ro_record_staged_message x \<bind>
+        (\<lambda>_. ro_record_staged_messages xs))"
+    by (rule hash_collision_budget_bind)
+      (rule hash_range_budget_ro_record_staged_message,
+       rule hash_collision_budget_ro_record_staged_message,
+       rule range_tail,
+       rule Cons.IH)
+  then show ?case
+    unfolding ro_record_staged_messages_def by simp
+qed
+
+lemma hash_target_program_ro_record_staged_messages:
+  "hash_target_program B (length xs) (ro_record_staged_messages xs)"
+proof (induction xs)
+  case Nil
+  then show ?case
+    unfolding ro_record_staged_messages_def
+    by (simp add: hash_target_program_return)
+next
+  case (Cons x xs)
+  have "hash_target_program B (1 + length xs)
+      (ro_record_staged_message x \<bind>
+        (\<lambda>_. ro_record_staged_messages xs))"
+    by (rule hash_target_program_bind)
+      (rule hash_target_program_ro_record_staged_message, rule Cons.IH)
+  then show ?case
+    unfolding ro_record_staged_messages_def by simp
+qed
+
+lemma hash_relation_program_ro_record_staged_messages:
+  assumes fibers: "\<And>x. card {y. R x y} \<le> b"
+  shows "hash_relation_program R b (length xs) (ro_record_staged_messages xs)"
+proof (induction xs)
+  case Nil
+  then show ?case
+    unfolding ro_record_staged_messages_def
+    by (simp add: hash_relation_program_zero hash_map_preserving_return)
+next
+  case (Cons x xs)
+  have "hash_relation_program R b (1 + length xs)
+      (ro_record_staged_message x \<bind>
+        (\<lambda>_. ro_record_staged_messages xs))"
+    by (rule hash_relation_program_bind)
+      (rule hash_relation_program_ro_record_staged_message[OF fibers],
+       rule Cons.IH)
+  then show ?case
+    unfolding ro_record_staged_messages_def by simp
+qed
+
 lemma hash_relation_program_receive_counted_tagged_random_field_element:
   assumes bump: "\<And>s. HashMap (bump s) = HashMap s"
     and fibers: "\<And>x. card {y. R x y} \<le> b"
@@ -2803,6 +3072,788 @@ next
       sum_list (take (Suc n) (drop i (query_opening_budgets budgets))) +
         Suc n"
     using sum_list_take_Suc_drop[OF i_bound, of n] by simp
+  show ?case
+    using whole unfolding budget_eq .
+qed
+
+lemma hash_range_budget_ro_checked_staged_query_program:
+  assumes controlled: "staged_adversary_controlled budgets A"
+    and bound: "i + n \<le> length (query_opening_budgets budgets)"
+  shows
+    "hash_range_budget
+      (sum_list (take n (drop i (query_opening_budgets budgets))) +
+        n +
+        n * verifier_query_round_transcript_length 0 trace_roots
+          composition_roots)
+      (ro_checked_staged_query_program A trace_roots composition_roots i n)"
+  using bound
+proof (induction n arbitrary: i)
+  case 0
+  then show ?case by (simp add: hash_range_budget_return)
+next
+  case (Suc n)
+  let ?L =
+    "verifier_query_round_transcript_length 0 trace_roots composition_roots"
+  let ?tail =
+    "sum_list (take n (drop (Suc i) (query_opening_budgets budgets))) +
+      n + n * ?L"
+  have i_bound: "i < length (query_opening_budgets budgets)"
+    using Suc.prems by simp
+  have challenge: "hash_range_budget 1 receive_query_index_challenge"
+    by (rule hash_range_budget_receive_query_index_challenge)
+  have stage:
+    "\<And>raw. hash_range_budget (query_opening_budgets budgets ! i)
+      (query_opening_stage A i raw)"
+    using controlled i_bound
+    unfolding staged_adversary_controlled_def
+    by (blast intro: controlled_ro_program_range)
+  have check:
+    "\<And>raw chunk. hash_range_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+    by (rule hash_range_budget_assert)
+  have tail:
+    "hash_range_budget ?tail
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n)"
+    by (rule Suc.IH) (use Suc.prems in simp)
+  have tail_return:
+    "\<And>chunk. hash_range_budget (?tail + 0)
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n \<bind>
+        (\<lambda>chunks. return (chunk # chunks)))"
+    by (rule hash_range_budget_bind)
+      (rule tail, rule hash_range_budget_return)
+  have after_record:
+    "\<And>raw chunk. verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk \<Longrightarrow>
+      hash_range_budget (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+  proof -
+    fix raw chunk
+    assume chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+    have chunk_len:
+      "length chunk = ?L"
+      using verifier_query_round_chunk_length[OF chunk_shape]
+        verifier_query_round_transcript_length_index_irrelevant
+          [of "index (to_nat raw)" trace_roots composition_roots 0]
+      by simp
+    have step:
+      "hash_range_budget (length chunk + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      by (rule hash_range_budget_bind)
+        (rule hash_range_budget_ro_record_staged_messages,
+          rule tail_return)
+    then show
+      "hash_range_budget (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      using chunk_len by simp
+  qed
+  have after_check:
+    "\<And>raw chunk. hash_range_budget (0 + (?L + (?tail + 0)))
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk) \<bind>
+        (\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))))"
+  proof (rule hash_range_budget_bind_on_outcomes)
+    fix raw chunk
+    show "hash_range_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+      by (rule check)
+  next
+    fix raw chunk s x t
+    assume out:
+      "Some (x, t) \<in>
+        set_dist
+          (execute
+            (assert
+              (verifier_query_round_chunk (index (to_nat raw))
+                trace_roots composition_roots chunk)) s)"
+    have chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+      using out unfolding assert_def
+      by (cases "verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk")
+        (auto simp: throw_no_outcome)
+    show "hash_range_budget (?L + (?tail + 0))
+      ((\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))) x)"
+      by (rule after_record[OF chunk_shape])
+  qed
+  have after_stage:
+    "\<And>raw. hash_range_budget
+      (query_opening_budgets budgets ! i +
+        (0 + (?L + (?tail + 0))))
+      (query_opening_stage A i raw \<bind>
+        (\<lambda>chunk. assert
+          (verifier_query_round_chunk (index (to_nat raw))
+            trace_roots composition_roots chunk) \<bind>
+          (\<lambda>_. ro_record_staged_messages chunk \<bind>
+            (\<lambda>_. ro_checked_staged_query_program A trace_roots
+              composition_roots (Suc i) n \<bind>
+              (\<lambda>chunks. return (chunk # chunks))))))"
+    by (rule hash_range_budget_bind)
+      (rule stage, rule after_check)
+  have whole:
+    "hash_range_budget
+      (1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))))
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        i (Suc n))"
+    unfolding ro_checked_staged_query_program.simps Let_def
+    by (rule hash_range_budget_bind)
+      (rule challenge, rule after_stage)
+  have budget_eq:
+    "1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))) =
+      sum_list (take (Suc n) (drop i (query_opening_budgets budgets))) +
+        Suc n + Suc n * ?L"
+    using sum_list_take_Suc_drop[OF i_bound, of n]
+    by (simp add: algebra_simps)
+  show ?case
+    using whole unfolding budget_eq .
+qed
+
+lemma hash_collision_budget_ro_checked_staged_query_program:
+  assumes controlled: "staged_adversary_controlled budgets A"
+    and bound: "i + n \<le> length (query_opening_budgets budgets)"
+  shows
+    "hash_collision_budget
+      (sum_list (take n (drop i (query_opening_budgets budgets))) +
+        n +
+        n * verifier_query_round_transcript_length 0 trace_roots
+          composition_roots)
+      (ro_checked_staged_query_program A trace_roots composition_roots i n)"
+  using bound
+proof (induction n arbitrary: i)
+  case 0
+  then show ?case by (simp add: hash_collision_budget_return)
+next
+  case (Suc n)
+  let ?L =
+    "verifier_query_round_transcript_length 0 trace_roots composition_roots"
+  let ?tail =
+    "sum_list (take n (drop (Suc i) (query_opening_budgets budgets))) +
+      n + n * ?L"
+  have i_bound: "i < length (query_opening_budgets budgets)"
+    using Suc.prems by simp
+  have challenge_range: "hash_range_budget 1 receive_query_index_challenge"
+    by (rule hash_range_budget_receive_query_index_challenge)
+  have challenge_coll: "hash_collision_budget 1 receive_query_index_challenge"
+    by (rule hash_collision_budget_receive_query_index_challenge)
+  have stage_range:
+    "\<And>raw. hash_range_budget (query_opening_budgets budgets ! i)
+      (query_opening_stage A i raw)"
+    using controlled i_bound
+    unfolding staged_adversary_controlled_def
+    by (blast intro: controlled_ro_program_range)
+  have stage_coll:
+    "\<And>raw. hash_collision_budget (query_opening_budgets budgets ! i)
+      (query_opening_stage A i raw)"
+    using controlled i_bound
+    unfolding staged_adversary_controlled_def
+    by (blast intro: controlled_ro_program_collision)
+  have check_range:
+    "\<And>raw chunk. hash_range_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+    by (rule hash_range_budget_assert)
+  have check_coll:
+    "\<And>raw chunk. hash_collision_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+    by (rule hash_collision_budget_assert)
+  have tail_range:
+    "hash_range_budget ?tail
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n)"
+    by (rule hash_range_budget_ro_checked_staged_query_program[OF controlled])
+      (use Suc.prems in simp)
+  have tail_coll:
+    "hash_collision_budget ?tail
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n)"
+    by (rule Suc.IH) (use Suc.prems in simp)
+  have tail_return_range:
+    "\<And>chunk. hash_range_budget (?tail + 0)
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n \<bind>
+        (\<lambda>chunks. return (chunk # chunks)))"
+    by (rule hash_range_budget_bind)
+      (rule tail_range, rule hash_range_budget_return)
+  have tail_return_coll:
+    "\<And>chunk. hash_collision_budget (?tail + 0)
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n \<bind>
+        (\<lambda>chunks. return (chunk # chunks)))"
+    by (rule hash_collision_budget_bind)
+      (rule tail_range, rule tail_coll, rule hash_range_budget_return,
+        rule hash_collision_budget_return)
+  have after_record_range:
+    "\<And>raw chunk. verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk \<Longrightarrow>
+      hash_range_budget (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+  proof -
+    fix raw chunk
+    assume chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+    have chunk_len: "length chunk = ?L"
+      using verifier_query_round_chunk_length[OF chunk_shape]
+        verifier_query_round_transcript_length_index_irrelevant
+          [of "index (to_nat raw)" trace_roots composition_roots 0]
+      by simp
+    have step:
+      "hash_range_budget (length chunk + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      by (rule hash_range_budget_bind)
+        (rule hash_range_budget_ro_record_staged_messages,
+          rule tail_return_range)
+    then show
+      "hash_range_budget (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      using chunk_len by simp
+  qed
+  have after_record_coll:
+    "\<And>raw chunk. verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk \<Longrightarrow>
+      hash_collision_budget (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+  proof -
+    fix raw chunk
+    assume chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+    have chunk_len: "length chunk = ?L"
+      using verifier_query_round_chunk_length[OF chunk_shape]
+        verifier_query_round_transcript_length_index_irrelevant
+          [of "index (to_nat raw)" trace_roots composition_roots 0]
+      by simp
+    have step:
+      "hash_collision_budget (length chunk + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      by (rule hash_collision_budget_bind)
+        (rule hash_range_budget_ro_record_staged_messages,
+          rule hash_collision_budget_ro_record_staged_messages,
+          rule tail_return_range, rule tail_return_coll)
+    then show
+      "hash_collision_budget (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      using chunk_len by simp
+  qed
+  have after_check_range:
+    "\<And>raw chunk. hash_range_budget (0 + (?L + (?tail + 0)))
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk) \<bind>
+        (\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))))"
+  proof (rule hash_range_budget_bind_on_outcomes)
+    fix raw chunk
+    show "hash_range_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+      by (rule check_range)
+  next
+    fix raw chunk s x t
+    assume out:
+      "Some (x, t) \<in>
+        set_dist
+          (execute
+            (assert
+              (verifier_query_round_chunk (index (to_nat raw))
+                trace_roots composition_roots chunk)) s)"
+    have chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+      using out unfolding assert_def
+      by (cases "verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk")
+        (auto simp: throw_no_outcome)
+    show "hash_range_budget (?L + (?tail + 0))
+      ((\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))) x)"
+      by (rule after_record_range[OF chunk_shape])
+  qed
+  have after_check_coll:
+    "\<And>raw chunk. hash_collision_budget (0 + (?L + (?tail + 0)))
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk) \<bind>
+        (\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))))"
+  proof (rule hash_collision_budget_bind_on_outcomes)
+    fix raw chunk
+    show "hash_range_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+      by (rule check_range)
+    show "hash_collision_budget 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+      by (rule check_coll)
+  next
+    fix raw chunk s x t
+    assume out:
+      "Some (x, t) \<in>
+        set_dist
+          (execute
+            (assert
+              (verifier_query_round_chunk (index (to_nat raw))
+                trace_roots composition_roots chunk)) s)"
+    have chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+      using out unfolding assert_def
+      by (cases "verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk")
+        (auto simp: throw_no_outcome)
+    show "hash_range_budget (?L + (?tail + 0))
+      ((\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))) x)"
+      by (rule after_record_range[OF chunk_shape])
+    show "hash_collision_budget (?L + (?tail + 0))
+      ((\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))) x)"
+      by (rule after_record_coll[OF chunk_shape])
+  qed
+  have after_stage_range:
+    "\<And>raw. hash_range_budget
+      (query_opening_budgets budgets ! i +
+        (0 + (?L + (?tail + 0))))
+      (query_opening_stage A i raw \<bind>
+        (\<lambda>chunk. assert
+          (verifier_query_round_chunk (index (to_nat raw))
+            trace_roots composition_roots chunk) \<bind>
+          (\<lambda>_. ro_record_staged_messages chunk \<bind>
+            (\<lambda>_. ro_checked_staged_query_program A trace_roots
+              composition_roots (Suc i) n \<bind>
+              (\<lambda>chunks. return (chunk # chunks))))))"
+    by (rule hash_range_budget_bind)
+      (rule stage_range, rule after_check_range)
+  have after_stage_coll:
+    "\<And>raw. hash_collision_budget
+      (query_opening_budgets budgets ! i +
+        (0 + (?L + (?tail + 0))))
+      (query_opening_stage A i raw \<bind>
+        (\<lambda>chunk. assert
+          (verifier_query_round_chunk (index (to_nat raw))
+            trace_roots composition_roots chunk) \<bind>
+          (\<lambda>_. ro_record_staged_messages chunk \<bind>
+            (\<lambda>_. ro_checked_staged_query_program A trace_roots
+              composition_roots (Suc i) n \<bind>
+              (\<lambda>chunks. return (chunk # chunks))))))"
+    by (rule hash_collision_budget_bind)
+      (rule stage_range, rule stage_coll, rule after_check_range,
+        rule after_check_coll)
+  have whole:
+    "hash_collision_budget
+      (1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))))
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        i (Suc n))"
+    unfolding ro_checked_staged_query_program.simps Let_def
+    by (rule hash_collision_budget_bind)
+      (rule challenge_range, rule challenge_coll, rule after_stage_range,
+        rule after_stage_coll)
+  have budget_eq:
+    "1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))) =
+      sum_list (take (Suc n) (drop i (query_opening_budgets budgets))) +
+        Suc n + Suc n * ?L"
+    using sum_list_take_Suc_drop[OF i_bound, of n]
+    by (simp add: algebra_simps)
+  show ?case
+    using whole unfolding budget_eq .
+qed
+
+lemma hash_target_program_ro_checked_staged_query_program:
+  assumes controlled: "staged_adversary_controlled budgets A"
+    and bound: "i + n \<le> length (query_opening_budgets budgets)"
+  shows
+    "hash_target_program B
+      (sum_list (take n (drop i (query_opening_budgets budgets))) +
+        n +
+        n * verifier_query_round_transcript_length 0 trace_roots
+          composition_roots)
+      (ro_checked_staged_query_program A trace_roots composition_roots i n)"
+  using bound
+proof (induction n arbitrary: i)
+  case 0
+  then show ?case by (simp add: hash_target_program_return)
+next
+  case (Suc n)
+  let ?L =
+    "verifier_query_round_transcript_length 0 trace_roots composition_roots"
+  let ?tail =
+    "sum_list (take n (drop (Suc i) (query_opening_budgets budgets))) +
+      n + n * ?L"
+  have i_bound: "i < length (query_opening_budgets budgets)"
+    using Suc.prems by simp
+  have challenge: "hash_target_program B 1 receive_query_index_challenge"
+    by (rule hash_target_program_receive_query_index_challenge)
+  have stage:
+    "\<And>raw. hash_target_program B (query_opening_budgets budgets ! i)
+      (query_opening_stage A i raw)"
+    using controlled i_bound
+    unfolding staged_adversary_controlled_def
+    by (blast intro: controlled_ro_program_target)
+  have check:
+    "\<And>raw chunk. hash_target_program B 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+    by (rule hash_target_program_assert)
+  have tail:
+    "hash_target_program B ?tail
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n)"
+    by (rule Suc.IH) (use Suc.prems in simp)
+  have tail_return:
+    "\<And>chunk. hash_target_program B (?tail + 0)
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n \<bind>
+        (\<lambda>chunks. return (chunk # chunks)))"
+    by (rule hash_target_program_bind)
+      (rule tail, rule hash_target_program_return)
+  have after_record:
+    "\<And>raw chunk. verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk \<Longrightarrow>
+      hash_target_program B (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+  proof -
+    fix raw chunk
+    assume chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+    have chunk_len: "length chunk = ?L"
+      using verifier_query_round_chunk_length[OF chunk_shape]
+        verifier_query_round_transcript_length_index_irrelevant
+          [of "index (to_nat raw)" trace_roots composition_roots 0]
+      by simp
+    have step:
+      "hash_target_program B (length chunk + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      by (rule hash_target_program_bind)
+        (rule hash_target_program_ro_record_staged_messages,
+          rule tail_return)
+    then show
+      "hash_target_program B (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      using chunk_len by simp
+  qed
+  have after_check:
+    "\<And>raw chunk. hash_target_program B (0 + (?L + (?tail + 0)))
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk) \<bind>
+        (\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))))"
+  proof (rule hash_target_program_bind_on_outcomes)
+    fix raw chunk
+    show "hash_target_program B 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+      by (rule check)
+  next
+    fix raw chunk s x t
+    assume out:
+      "Some (x, t) \<in>
+        set_dist
+          (execute
+            (assert
+              (verifier_query_round_chunk (index (to_nat raw))
+                trace_roots composition_roots chunk)) s)"
+    have chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+      using out unfolding assert_def
+      by (cases "verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk")
+        (auto simp: throw_no_outcome)
+    show "hash_target_program B (?L + (?tail + 0))
+      ((\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))) x)"
+      by (rule after_record[OF chunk_shape])
+  qed
+  have after_stage:
+    "\<And>raw. hash_target_program B
+      (query_opening_budgets budgets ! i +
+        (0 + (?L + (?tail + 0))))
+      (query_opening_stage A i raw \<bind>
+        (\<lambda>chunk. assert
+          (verifier_query_round_chunk (index (to_nat raw))
+            trace_roots composition_roots chunk) \<bind>
+          (\<lambda>_. ro_record_staged_messages chunk \<bind>
+            (\<lambda>_. ro_checked_staged_query_program A trace_roots
+              composition_roots (Suc i) n \<bind>
+              (\<lambda>chunks. return (chunk # chunks))))))"
+    by (rule hash_target_program_bind)
+      (rule stage, rule after_check)
+  have whole:
+    "hash_target_program B
+      (1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))))
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        i (Suc n))"
+    unfolding ro_checked_staged_query_program.simps Let_def
+    by (rule hash_target_program_bind)
+      (rule challenge, rule after_stage)
+  have budget_eq:
+    "1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))) =
+      sum_list (take (Suc n) (drop i (query_opening_budgets budgets))) +
+        Suc n + Suc n * ?L"
+    using sum_list_take_Suc_drop[OF i_bound, of n]
+    by (simp add: algebra_simps)
+  show ?case
+    using whole unfolding budget_eq .
+qed
+
+lemma hash_relation_program_ro_checked_staged_query_program:
+  assumes controlled: "staged_adversary_controlled budgets A"
+    and bound: "i + n \<le> length (query_opening_budgets budgets)"
+    and fibers: "\<And>x. card {y. R x y} \<le> b"
+  shows
+    "hash_relation_program R b
+      (sum_list (take n (drop i (query_opening_budgets budgets))) +
+        n +
+        n * verifier_query_round_transcript_length 0 trace_roots
+          composition_roots)
+      (ro_checked_staged_query_program A trace_roots composition_roots i n)"
+  using bound
+proof (induction n arbitrary: i)
+  case 0
+  then show ?case
+    by (simp add: hash_relation_program_zero[OF hash_map_preserving_return])
+next
+  case (Suc n)
+  let ?L =
+    "verifier_query_round_transcript_length 0 trace_roots composition_roots"
+  let ?tail =
+    "sum_list (take n (drop (Suc i) (query_opening_budgets budgets))) +
+      n + n * ?L"
+  have i_bound: "i < length (query_opening_budgets budgets)"
+    using Suc.prems by simp
+  have challenge:
+    "hash_relation_program R b 1 receive_query_index_challenge"
+    by (rule hash_relation_program_receive_query_index_challenge[OF fibers])
+  have stage:
+    "\<And>raw. hash_relation_program R b
+      (query_opening_budgets budgets ! i)
+      (query_opening_stage A i raw)"
+  proof -
+    fix raw
+    have stage_controlled:
+      "controlled_ro_program (query_opening_budgets budgets ! i)
+        (query_opening_stage A i raw)"
+      using controlled i_bound
+      unfolding staged_adversary_controlled_def by blast
+    show "hash_relation_program R b
+        (query_opening_budgets budgets ! i)
+        (query_opening_stage A i raw)"
+      by (rule controlled_ro_program_relation
+          [OF stage_controlled fibers])
+  qed
+  have check:
+    "\<And>raw chunk. hash_relation_program R b 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+    by (rule hash_relation_program_assert)
+  have tail:
+    "hash_relation_program R b ?tail
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n)"
+    by (rule Suc.IH) (use Suc.prems in simp)
+  have tail_return:
+    "\<And>chunk. hash_relation_program R b (?tail + 0)
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        (Suc i) n \<bind>
+        (\<lambda>chunks. return (chunk # chunks)))"
+    by (rule hash_relation_program_bind)
+      (rule tail,
+        rule hash_relation_program_zero[OF hash_map_preserving_return])
+  have after_record:
+    "\<And>raw chunk. verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk \<Longrightarrow>
+      hash_relation_program R b (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+  proof -
+    fix raw chunk
+    assume chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+    have chunk_len: "length chunk = ?L"
+      using verifier_query_round_chunk_length[OF chunk_shape]
+        verifier_query_round_transcript_length_index_irrelevant
+          [of "index (to_nat raw)" trace_roots composition_roots 0]
+      by simp
+    have step:
+      "hash_relation_program R b (length chunk + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      by (rule hash_relation_program_bind)
+        (rule hash_relation_program_ro_record_staged_messages[OF fibers],
+          rule tail_return)
+    then show
+      "hash_relation_program R b (?L + (?tail + 0))
+        (ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks))))"
+      using chunk_len by simp
+  qed
+  have after_check:
+    "\<And>raw chunk. hash_relation_program R b (0 + (?L + (?tail + 0)))
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk) \<bind>
+        (\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))))"
+  proof (rule hash_relation_program_bind_on_outcomes)
+    fix raw chunk
+    show "hash_relation_program R b 0
+      (assert
+        (verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk))"
+      by (rule check)
+  next
+    fix raw chunk s x t
+    assume out:
+      "Some (x, t) \<in>
+        set_dist
+          (execute
+            (assert
+              (verifier_query_round_chunk (index (to_nat raw))
+                trace_roots composition_roots chunk)) s)"
+    have chunk_shape:
+      "verifier_query_round_chunk (index (to_nat raw))
+        trace_roots composition_roots chunk"
+      using out unfolding assert_def
+      by (cases "verifier_query_round_chunk (index (to_nat raw))
+          trace_roots composition_roots chunk")
+        (auto simp: throw_no_outcome)
+    show "hash_relation_program R b (?L + (?tail + 0))
+      ((\<lambda>_. ro_record_staged_messages chunk \<bind>
+          (\<lambda>_. ro_checked_staged_query_program A trace_roots
+            composition_roots (Suc i) n \<bind>
+            (\<lambda>chunks. return (chunk # chunks)))) x)"
+      by (rule after_record[OF chunk_shape])
+  qed
+  have after_stage:
+    "\<And>raw. hash_relation_program R b
+      (query_opening_budgets budgets ! i +
+        (0 + (?L + (?tail + 0))))
+      (query_opening_stage A i raw \<bind>
+        (\<lambda>chunk. assert
+          (verifier_query_round_chunk (index (to_nat raw))
+            trace_roots composition_roots chunk) \<bind>
+          (\<lambda>_. ro_record_staged_messages chunk \<bind>
+            (\<lambda>_. ro_checked_staged_query_program A trace_roots
+              composition_roots (Suc i) n \<bind>
+              (\<lambda>chunks. return (chunk # chunks))))))"
+    by (rule hash_relation_program_bind)
+      (rule stage, rule after_check)
+  have whole:
+    "hash_relation_program R b
+      (1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))))
+      (ro_checked_staged_query_program A trace_roots composition_roots
+        i (Suc n))"
+    unfolding ro_checked_staged_query_program.simps Let_def
+    by (rule hash_relation_program_bind)
+      (rule challenge, rule after_stage)
+  have budget_eq:
+    "1 +
+        (query_opening_budgets budgets ! i +
+          (0 + (?L + (?tail + 0)))) =
+      sum_list (take (Suc n) (drop i (query_opening_budgets budgets))) +
+        Suc n + Suc n * ?L"
+    using sum_list_take_Suc_drop[OF i_bound, of n]
+    by (simp add: algebra_simps)
   show ?case
     using whole unfolding budget_eq .
 qed

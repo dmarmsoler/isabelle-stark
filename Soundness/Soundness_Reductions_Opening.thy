@@ -423,22 +423,17 @@ proof -
         [OF wf future no_collision no_coupling])
 qed
 
-lemma verifier_initial_random_oracle_freshness_if_uniform_sampler_and_no_pairwise_side_bad:
-  \<comment> \<open>The range premise states that \<^term>\<open>to_nat\<close> enumerates exactly
-      the field indices used by the query sampler; the divisibility premise
-      makes the modulo/index projection uniform over
-      \<^term>\<open>query_sample_space\<close>.\<close>
-  assumes range_eq: "range to_nat = {0..<size}"
-    and dvd: "query_sample_space_size dvd size"
-    and no_collision:
+lemma verifier_initial_random_oracle_freshness_if_sampler_wellformed_and_no_pairwise_side_bad:
+  \<comment> \<open>The sampler wellformedness assumptions from the protocol locale bound the
+      non-uniform modulo projection by its exact raw-preimage envelope.\<close>
+  assumes no_collision:
       "\<not> supported_hash_output_collision_possible (verifier_initial_state tr)"
     and no_coupling:
       "\<not> supported_pairwise_coupling_bad (verifier_initial_state tr)"
   shows "random_oracle_freshness_assumption (verifier_initial_state tr)"
 proof -
   have raw_bound: "query_index_raw_preimage_bound"
-    by (rule query_index_raw_preimage_bound_if_uniform_range
-        [OF range_eq dvd])
+    by (rule query_index_raw_preimage_bound_from_sampler_wellformed)
   show ?thesis
     by (rule random_oracle_freshness_if_no_pairwise_side_bad
         [OF _ _ _ _ raw_bound no_collision no_coupling])
