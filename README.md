@@ -48,15 +48,13 @@ unmodified proof route.
 
 ## Repository layout
 
-| Path | Contents |
-| --- | --- |
-| [Core/](Core/) | Probability, channels, Merkle trees, the finite-field example and protocol definitions |
-| [Completeness/](Completeness/) | Honest completeness of the core prover/verifier execution |
-| [Examples/](Examples/) | Executable GF(5) example, prime-field certification and scalable square workload |
-| [Soundness/](Soundness/) | Soundness, FS transport/accounting and concrete honest RO completeness |
-| [ROOT](ROOT) | The four Isabelle sessions and proof-document configuration |
-| [report/](report/) | Technical report, including explicitly identified historical developments |
-| [audit/](audit/README.md) | Dated development evidence and the minimal-release cleanup record |
+| Path                           | Contents                                                                               |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| [Core/](Core/)                 | Probability, channels, Merkle trees, the finite-field example and protocol definitions |
+| [Completeness/](Completeness/) | Honest completeness of the core prover/verifier execution                              |
+| [Examples/](Examples/)         | Executable GF(5) example, prime-field certification and scalable square workload       |
+| [Soundness/](Soundness/)       | Soundness, FS transport/accounting and concrete honest RO completeness                 |
+| [ROOT](ROOT)                   | The four Isabelle sessions and proof-document configuration                            |
 
 ## Requirements
 
