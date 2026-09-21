@@ -1,16 +1,9 @@
 # Current results and publication scope
 
-This is the short entry point to the current Isabelle/HOL development. The
-technical report and older audits retain the development history; this overview
-does not replace their evidence. For checking instructions and remaining artifact
-release gates, see [REPRODUCING.md](REPRODUCING.md).
-
+This is the short entry point to the current Isabelle/HOL development.
 The minimal release retains the complete theory-import closure of the ten-result
 publication manifest and the executable [Square Sequence example](Examples/Square_Sequence.thy):
-487 theories in total. All retained theory sources are unchanged. The 84 removed
-theories and validation evidence are recorded in the [cleanup audit](audit/minimal_public_release.md).
-Historical report and audit references to omitted theories refer to the full
-development at Git revision `0fcbf9ff3282b7043142f1c7f3999070917b55ec`.
+487 theories in total. All retained theory sources are unchanged.
 
 ## Principal result
 
@@ -38,18 +31,18 @@ Names below are also selected by the build-checked
 statements and dependency information; this table is an explanation, not a
 substitute for those statements.
 
-| Claim | Theory and theorem | Important boundary |
-|---|---|---|
-| Workload means the endpoint equation | [Square_Sequence_192_Core_Completeness](Soundness/Square_Sequence_192_Core_Completeness.thy), `square_192_valid_trace_iff` | An equivalence, not merely an uninterpreted validity predicate |
-| Honest RO acceptance is one | [Square_Sequence_192_RO_Completeness](Soundness/Square_Sequence_192_RO_Completeness.thy), `square_ro_honest_experiment_acceptance_one` | Correct endpoint is the sole premise; no honest budget-fit claim |
-| Honest/staged and FS interfaces use the same final verifier | [FS_Adversary_Model](Soundness/FS_Adversary_Model.thy), `soundness.staged_fs_verifier_factorization` | Producer interfaces remain different |
-| Fixed-private-choice adaptive producer embeds exactly | [FS_Adaptive_Staged_Embedding](Soundness/FS_Adaptive_Staged_Embedding.thy), `soundness.fs_compile_replay_acceptance` | Oracle-query continuations remain adaptive |
-| Private randomness also transports exactly | Same theory, `soundness.fs_compiled_mixture_acceptance` | A mixture of whole compiled programs, not independent choices at callbacks |
-| Replay compiler has an explicit sufficient allowance | [FS_Replay_Allowance](Soundness/FS_Replay_Allowance.thy), `soundness.fs_replay_total_allowance` | Not a minimum allowance or equality with actual producer calls |
-| Complete conventional-Q bound | [FS_First_Root_Soundness](Soundness/FS_First_Root_Soundness.thy), `soundness.fs_first_root_soundness` | Includes existing locale and false-statement/query-cap premises |
-| Exact improvement over preceding ledger | [FS_Square_First_Root_Comparison](Soundness/FS_Square_First_Root_Comparison.thy), `square_fs_first_root_ledger_balance` | Identity between upper bounds, not actual success probabilities |
-| Closed certified numerical inequality | [FS_Square_192_137](Soundness/FS_Square_192_137.thy), `square_fs_137_prefix_target` | Proved rational/arithmetic estimate, not a Python calculation |
-| Concrete false-endpoint acceptance bound | Same theory, `square_192_fs_137_incorrect_endpoint` | Fixed statement; `Q <= 2^20`; acceptance at most `2^-137` |
+| Claim                                                       | Theory and theorem                                                                                                                     | Important boundary                                                         |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Workload means the endpoint equation                        | [Square_Sequence_192_Core_Completeness](Soundness/Square_Sequence_192_Core_Completeness.thy), `square_192_valid_trace_iff`             | An equivalence, not merely an uninterpreted validity predicate             |
+| Honest RO acceptance is one                                 | [Square_Sequence_192_RO_Completeness](Soundness/Square_Sequence_192_RO_Completeness.thy), `square_ro_honest_experiment_acceptance_one` | Correct endpoint is the sole premise; no honest budget-fit claim           |
+| Honest/staged and FS interfaces use the same final verifier | [FS_Adversary_Model](Soundness/FS_Adversary_Model.thy), `soundness.staged_fs_verifier_factorization`                                   | Producer interfaces remain different                                       |
+| Fixed-private-choice adaptive producer embeds exactly       | [FS_Adaptive_Staged_Embedding](Soundness/FS_Adaptive_Staged_Embedding.thy), `soundness.fs_compile_replay_acceptance`                   | Oracle-query continuations remain adaptive                                 |
+| Private randomness also transports exactly                  | Same theory, `soundness.fs_compiled_mixture_acceptance`                                                                                | A mixture of whole compiled programs, not independent choices at callbacks |
+| Replay compiler has an explicit sufficient allowance        | [FS_Replay_Allowance](Soundness/FS_Replay_Allowance.thy), `soundness.fs_replay_total_allowance`                                        | Not a minimum allowance or equality with actual producer calls             |
+| Complete conventional-Q bound                               | [FS_First_Root_Soundness](Soundness/FS_First_Root_Soundness.thy), `soundness.fs_first_root_soundness`                                  | Includes existing locale and false-statement/query-cap premises            |
+| Exact improvement over preceding ledger                     | [FS_Square_First_Root_Comparison](Soundness/FS_Square_First_Root_Comparison.thy), `square_fs_first_root_ledger_balance`                | Identity between upper bounds, not actual success probabilities            |
+| Closed certified numerical inequality                       | [FS_Square_192_137](Soundness/FS_Square_192_137.thy), `square_fs_137_prefix_target`                                                    | Proved rational/arithmetic estimate, not a Python calculation              |
+| Concrete false-endpoint acceptance bound                    | Same theory, `square_192_fs_137_incorrect_endpoint`                                                                                    | Fixed statement; `Q <= 2^20`; acceptance at most `2^-137`                  |
 
 To expand the generic assumptions, follow `soundness` in
 [Soundness_Core_Base](Soundness/Soundness_Core_Base.thy), its parent `verifier`
@@ -135,9 +128,3 @@ commitment/challenge lists across its sequential query rounds. Do not equate
   universal realizability ceiling or substantially smaller true maximum.
 - Empty theorem oracle lists do not eliminate the HOL foundational basis or
   establish correspondence between definitions and an intended deployed system.
-
-The development supports paper preparation now. Exact dependency downloads are
-verified and checksum-pinned; [REPRODUCING.md](REPRODUCING.md) distinguishes the
-successful isolated same-host build from independent clean-machine reproduction.
-The latter, independent semantic review and a current revision-pinned
-related-work comparison remain publication-release work.
