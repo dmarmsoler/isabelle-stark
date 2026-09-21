@@ -158,30 +158,7 @@ execution to the staged soundness analysis. The [report](report/main.pdf)
 gives a more detailed comparison; [PUBLICATION.md](PUBLICATION.md) states the
 precise guarantees and their scope.
 
-## Historical material
-
-The [technical report](report/README.md) and [audits](audit/README.md) retain
-earlier results and research routes, including theories omitted from this
-minimal release. They are not an inventory of its current theory files.
-The [cleanup record](audit/minimal_public_release.md) identifies the removed
-files and validation evidence.
-
-The full development and previous chronological README are preserved in the
-local Git history at revision `0fcbf9ff3282b7043142f1c7f3999070917b55ec`.
-Source references to removed theories in historical documents refer to that
-revision. In a checkout containing this revision, retrieve a file with:
-
-```sh
-git show 0fcbf9ff3282b7043142f1c7f3999070917b55ec:PATH
-```
-
-Replace `PATH` with the repository-relative path, such as
-`Soundness/FS_Square_192_128.thy`. Public access to this archived revision
-remains pending; an ordinary clone of the currently public repository is not
-yet a verified way to obtain it. Current publication claims are defined by the
-manifest and PUBLICATION.md.
-
-## Acknowledgements
+## ## Acknowledgements
 
 Parts of this research were carried out using OpenAI's **ChatGPT for Academic Researchers** programme.
 
